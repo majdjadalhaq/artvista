@@ -1,0 +1,98 @@
+/* Import Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global base styles */
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply m-0 p-0 font-body text-text-primary bg-canvas antialiased;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-canvas-dark;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-accent-primary rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent-hover;
+  }
+}
+
+/* Custom component utilities */
+@layer components {
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-6 py-3 bg-accent-primary text-white font-medium rounded-md transition-all duration-300 hover:bg-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-transparent border-2 border-accent-primary text-accent-primary font-medium rounded-md transition-all duration-300 hover:bg-accent-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-accent-primary;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all duration-200;
+  }
+
+  /* Container */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent;
+  }
+
+  /* Backdrop blur */
+  .backdrop-blur-custom {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Museum-style divider */
+  .divider {
+    @apply h-px bg-gradient-to-r from-transparent via-accent-primary to-transparent;
+  }
+}
