@@ -1,23 +1,29 @@
+/* Import Google Fonts - must be first */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Import Tailwind CSS directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
 /* Global base styles */
 @layer base {
   * {
-    @apply box-border;
+    box-sizing: border-box;
   }
 
   html {
-    @apply scroll-smooth;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply m-0 p-0 font-body text-text-primary bg-canvas antialiased;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    color: #1A1A1A;
+    background-color: #F8F7F5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
   }
 
@@ -27,7 +33,7 @@
   h4,
   h5,
   h6 {
-    @apply font-display;
+    font-family: 'Playfair Display', serif;
   }
 
   /* Custom scrollbar styling */
@@ -37,15 +43,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-canvas-dark;
+    background-color: #E8E6E3;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-accent-primary rounded-full;
+    background-color: #8B7355;
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent-hover;
+    background-color: #6F5D47;
   }
 }
 
