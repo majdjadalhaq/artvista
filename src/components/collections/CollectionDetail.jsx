@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchArtworkById } from '../../services/artInstituteAPI';
 import { normalizeArtInstitute } from '../../utils/artworkNormalizer';
 import ArtworkGrid from '../artwork/ArtworkGrid';
+import ArtworkDetail from '../artwork/ArtworkDetail';
 
 /**
  * CollectionDetail Component
@@ -12,6 +13,7 @@ function CollectionDetail({ collection, onBack }) {
     const [artworks, setArtworks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedArtworkId, setSelectedArtworkId] = useState(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -56,6 +58,13 @@ function CollectionDetail({ collection, onBack }) {
 
     return (
         <div>
+            {selectedArtworkId && (
+                <ArtworkDetail
+                    artworkId={selectedArtworkId}
+                    onClose={() => setSelectedArtworkId(null)}
+                />
+            )}
+
             <div className="mb-8 flex items-center md:flex-row flex-col md:justify-between gap-4">
                 <div>
                     <button
@@ -77,7 +86,7 @@ function CollectionDetail({ collection, onBack }) {
                 artworks={artworks}
                 loading={loading}
                 error={error}
-                onArtworkClick={(artwork) => console.log('View artwork:', artwork.id)}
+                onArtworkClick={(artwork) => setSelectedArtworkId(artwork.id)}
             />
         </div>
     );

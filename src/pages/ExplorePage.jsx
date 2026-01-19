@@ -3,6 +3,7 @@ import useFetchArtworks from '../hooks/useFetchArtworks';
 import useDebounce from '../hooks/useDebounce';
 import ArtworkGrid from '../components/artwork/ArtworkGrid';
 import FilterSidebar from '../components/filters/FilterSidebar';
+import ArtworkDetail from '../components/artwork/ArtworkDetail';
 
 /**
  * Explore page component
@@ -14,6 +15,7 @@ function ExplorePage() {
         page: 1,
         limit: 12
     });
+    const [selectedArtworkId, setSelectedArtworkId] = useState(null);
 
     // Debounce the search query to avoid API spam
     const debouncedQuery = useDebounce(filters.query, 500);
@@ -33,8 +35,19 @@ function ExplorePage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handleArtworkClick = (artwork) => {
+        setSelectedArtworkId(artwork.id);
+    };
+
     return (
         <div>
+            {selectedArtworkId && (
+                <ArtworkDetail
+                    artworkId={selectedArtworkId}
+                    onClose={() => setSelectedArtworkId(null)}
+                />
+            )}
+
             <div className="mb-8">
                 <h1 className="text-4xl font-display font-bold text-text-primary mb-2">
                     Explore Artworks
@@ -59,10 +72,7 @@ function ExplorePage() {
                         artworks={artworks}
                         loading={loading}
                         error={error}
-                        onArtworkClick={(artwork) => {
-                            // Navigate to detail view (to be implemented in Phase 7)
-                            console.log('Navigate to artwork:', artwork.id);
-                        }}
+                        onArtworkClick={handleArtworkClick}
                     />
 
                     {/* Pagination */}
