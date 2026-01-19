@@ -1,10 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
+import useFetchArtworks from '../hooks/useFetchArtworks';
+import useDebounce from '../hooks/useDebounce';
+import ArtworkGrid from '../components/artwork/ArtworkGrid';
+import FilterSidebar from '../components/filters/FilterSidebar';
 
 /**
  * Explore page component
- * Displays artwork grid with filters (to be implemented in Phase 5)
+ * Integrates filtering, searching, and artwork grid display
  */
 function ExplorePage() {
+    const [filters, setFilters] = useState({
+        query: '',
+        page: 1,
+        limit: 12
+    });
+
+    // Debounce the search query to avoid API spam
+    const debouncedQuery = useDebounce(filters.query, 500);
+
+    // Fetch artworks using the debounced query
+    const { artworks, loading, error, pagination } = useFetchArtworks({
+        ...filters,
+        query: debouncedQuery
+    });
+
+    const handleFilterChange = (newFilters) => {
+        setFilters(newFilters);
+    };
+
+    const handlePageChange = (newPage) => {
+        setFilters(prev => ({ ...prev, page: newPage }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <div>
             <div className="mb-8">
@@ -16,28 +44,49 @@ function ExplorePage() {
                 </p>
             </div>
 
-            {/* Placeholder for filters and grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Filter Sidebar Placeholder */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Sidebar */}
                 <aside className="lg:col-span-1">
-                    <div className="bg-surface border border-border rounded-lg p-6">
-                        <h2 className="text-lg font-semibold text-text-primary mb-4">Filters</h2>
-                        <p className="text-sm text-text-secondary">
-                            Filter functionality will be added in Phase 5
-                        </p>
-                    </div>
+                    <FilterSidebar
+                        filters={filters}
+                        onFilterChange={setFilters} // Direct setter works for simple updates, but wrapper is better if complex logic needed
+                    />
                 </aside>
 
-                {/* Artwork Grid Placeholder */}
+                {/* Main Content */}
                 <div className="lg:col-span-3">
-                    <div className="bg-surface border border-border rounded-lg p-8 text-center">
-                        <p className="text-text-secondary">
-                            Artwork grid will be implemented in Phase 5
-                        </p>
-                        <p className="text-sm text-text-secondary mt-2">
-                            (API integration and custom hooks coming next)
-                        </p>
-                    </div>
+                    <ArtworkGrid
+                        artworks={artworks}
+                        loading={loading}
+                        error={error}
+                        onArtworkClick={(artwork) => {
+                            // Navigate to detail view (to be implemented in Phase 7)
+                            console.log('Navigate to artwork:', artwork.id);
+                        }}
+                    />
+
+                    {/* Pagination */}
+                    {!loading && !error && artworks.length > 0 && (
+                        <div className="mt-8 flex justify-center items-center space-x-4">
+                            <button
+                                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                disabled={pagination.currentPage <= 1}
+                                className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-text-secondary">
+                                Page {pagination.currentPage} of {pagination.totalPages}
+                            </span>
+                            <button
+                                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                disabled={pagination.currentPage >= pagination.totalPages}
+                                className="px-4 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-hover transition-colors"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
