@@ -1,19 +1,28 @@
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './routes/AppRoutes';
+import React, { useState } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { CollectionsProvider } from './context/CollectionsContext';
+import AppRoutes from './routes/AppRoutes';
+import MainLayout from './components/layout/MainLayout';
+import IntroAnimation from './components/animations/IntroAnimation';
 
-/**
- * Root application component
- * Sets up routing and global providers
- */
 function App() {
+  const [introComplete, setIntroComplete] = useState(false);
+
   return (
-    <BrowserRouter>
-      <CollectionsProvider>
-        <AppRoutes />
-      </CollectionsProvider>
-    </BrowserRouter>
+    <CollectionsProvider>
+      <Router>
+        {!introComplete && (
+          <IntroAnimation onComplete={() => setIntroComplete(true)} />
+        )}
+
+        {/* Main Content loads behind but is revealed after intro */}
+        <div className={`transition-opacity duration-1000 ${introComplete ? 'opacity-100' : 'opacity-0'}`}>
+          <MainLayout>
+            <AppRoutes />
+          </MainLayout>
+        </div>
+      </Router>
+    </CollectionsProvider>
   );
 }
 
