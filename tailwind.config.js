@@ -7,36 +7,36 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Museum-inspired color palette
-                canvas: {
-                    DEFAULT: '#F8F7F5',
-                    dark: '#E8E6E3',
-                },
+                // Light theme gallery aesthetics
+                canvas: '#ffffff', // Main background
+                surface: '#f8f8f8', // Cards/Modals
+                'surface-hover': '#f0f0f0',
+                border: '#e5e5e5',
+
                 text: {
-                    primary: '#1A1A1A',
-                    secondary: '#4A4A4A',
-                    muted: '#8A8A8A',
+                    primary: '#1a1a1a',
+                    secondary: '#666666',
                 },
+
                 accent: {
-                    primary: '#8B7355',
-                    secondary: '#C4A57B',
-                    hover: '#6F5D47',
-                },
+                    primary: '#d64d4d', // Muted red for gallery feel
+                    secondary: '#2d5a88',
+                }
             },
             fontFamily: {
-                display: ['Playfair Display', 'serif'],
-                body: ['Inter', 'sans-serif'],
+                sans: ['Inter', 'system-ui', 'sans-serif'],
+                display: ['Playfair Display', 'serif'], // Elegant serif for headings
             },
-            spacing: {
-                '18': '4.5rem',
-                '22': '5.5rem',
-                '26': '6.5rem',
-                '30': '7.5rem',
+            container: {
+                center: true,
+                padding: '2rem',
+                screens: {
+                    '2xl': '1400px',
+                },
             },
             animation: {
-                'fade-in': 'fadeIn 0.6s ease-in-out',
-                'slide-up': 'slideUp 0.8s ease-out',
-                'scale-in': 'scaleIn 0.4s ease-out',
+                'fade-in': 'fadeIn 0.5s ease-out',
+                'slide-up': 'slideUp 0.5s ease-out',
             },
             keyframes: {
                 fadeIn: {
@@ -44,12 +44,8 @@ export default {
                     '100%': { opacity: '1' },
                 },
                 slideUp: {
-                    '0%': { transform: 'translateY(30px)', opacity: '0' },
+                    '0%': { transform: 'translateY(20px)', opacity: '0' },
                     '100%': { transform: 'translateY(0)', opacity: '1' },
-                },
-                scaleIn: {
-                    '0%': { transform: 'scale(0.9)', opacity: '0' },
-                    '100%': { transform: 'scale(1)', opacity: '1' },
                 },
             },
         },

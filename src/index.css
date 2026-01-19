@@ -1,30 +1,12 @@
-/* Import Google Fonts - must be first */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
-/* Import Tailwind CSS directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global base styles */
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    color: #1A1A1A;
-    background-color: #F8F7F5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
+    @apply antialiased text-text-primary bg-canvas font-sans;
   }
 
   h1,
@@ -33,73 +15,46 @@
   h4,
   h5,
   h6 {
-    font-family: 'Playfair Display', serif;
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+
+  /* Custom Container to match design */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Custom scrollbar styling */
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background-color: #E8E6E3;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: #8B7355;
-    border-radius: 9999px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #6F5D47;
+    @apply bg-border rounded-full hover:bg-text-secondary/50 transition-colors;
   }
 }
 
-/* Custom component utilities */
-@layer components {
-
-  /* Button styles */
-  .btn-primary {
-    @apply px-6 py-3 bg-accent-primary text-white font-medium rounded-md transition-all duration-300 hover:bg-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2;
-  }
-
-  .btn-secondary {
-    @apply px-6 py-3 bg-transparent border-2 border-accent-primary text-accent-primary font-medium rounded-md transition-all duration-300 hover:bg-accent-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-accent-primary;
-  }
-
-  /* Card styles */
-  .card {
-    @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl;
-  }
-
-  /* Input styles */
-  .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all duration-200;
-  }
-
-  /* Container */
-  .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
+/* Animations that are hard to do with just utility classes */
+.hover-img-zoom {
+  overflow: hidden;
 }
 
-/* Utility classes */
-@layer utilities {
+.hover-img-zoom img {
+  transition: transform 0.5s ease;
+}
 
-  /* Text gradient */
-  .text-gradient {
-    @apply bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent;
-  }
-
-  /* Backdrop blur */
-  .backdrop-blur-custom {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  /* Museum-style divider */
-  .divider {
-    @apply h-px bg-gradient-to-r from-transparent via-accent-primary to-transparent;
-  }
+.hover-img-zoom:hover img {
+  transform: scale(1.05);
 }
