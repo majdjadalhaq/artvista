@@ -1,180 +1,46 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-/**
- * Collections Context
- * Manages user's artwork collections with localStorage persistence
- */
-export const CollectionsContext = createContext(null);
+const CollectionsContext = createContext();
 
-const STORAGE_KEY = 'artvista_collections';
+export const useCollections = () => {
+    const context = useContext(CollectionsContext);
+    if (!context) {
+        throw new Error('useCollections must be used within a CollectionsProvider');
+    }
+    return context;
+};
 
-/**
- * Collections Provider Component
- * Wraps the app to provide collections state globally
- */
-export function CollectionsProvider({ children }) {
-    const [collections, setCollections] = useState([]);
-
-    // Load collections from localStorage on mount
-    useEffect(() => {
+export const CollectionsProvider = ({ children }) => {
+    const [savedArtworks, setSavedArtworks] = useState(() => {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                setCollections(parsed);
-            } else {
-                // Initialize with a default "Favorites" collection
-                const defaultCollections = [
-                    {
-                        name: 'Favorites',
-                        artworkIds: []
-                    }
-                ];
-                setCollections(defaultCollections);
-            }
-        } catch (error) {
-            console.error('Error loading collections from localStorage:', error);
-            setCollections([{ name: 'Favorites', artworkIds: [] }]);
+            const local = localStorage.getItem('artvista_collections');
+            return local ? JSON.parse(local) : [];
+        } catch (e) {
+            console.error("Failed to parse collections", e);
+            return [];
         }
-    }, []);
+    });
 
-    // Save collections to localStorage whenever they change
     useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(collections));
-        } catch (error) {
-            console.error('Error saving collections to localStorage:', error);
-        }
-    }, [collections]);
+        localStorage.setItem('artvista_collections', JSON.stringify(savedArtworks));
+    }, [savedArtworks]);
 
-    /**
-     * Create a new collection
-     * @param {string} name - Collection name
-     * @returns {boolean} Success status
-     */
-    const createCollection = (name) => {
-        if (!name || !name.trim()) {
-            console.error('Collection name cannot be empty');
-            return false;
-        }
-
-        // Check if collection already exists
-        const exists = collections.some(
-            (col) => col.name.toLowerCase() === name.trim().toLowerCase()
-        );
-
-        if (exists) {
-            console.error('Collection already exists');
-            return false;
-        }
-
-        setCollections([...collections, { name: name.trim(), artworkIds: [] }]);
-        return true;
+    const addToCollection = (art) => {
+        setSavedArtworks(prev => {
+            if (prev.some(a => a.id === art.id)) return prev;
+            return [...prev, art];
+        });
     };
 
-    /**
-     * Delete a collection
-     * @param {string} name - Collection name
-     * @returns {boolean} Success status
-     */
-    const deleteCollection = (name) => {
-        // Prevent deleting the default Favorites collection
-        if (name === 'Favorites') {
-            console.error('Cannot delete the Favorites collection');
-            return false;
-        }
-
-        setCollections(collections.filter((col) => col.name !== name));
-        return true;
+    const removeFromCollection = (id) => {
+        setSavedArtworks(prev => prev.filter(a => a.id !== id));
     };
 
-    /**
-     * Add artwork to a collection
-     * @param {number|string} artworkId - Artwork ID
-     * @param {string} collectionName - Collection name
-     * @returns {boolean} Success status
-     */
-    const addToCollection = (artworkId, collectionName) => {
-        const collection = collections.find((col) => col.name === collectionName);
-
-        if (!collection) {
-            console.error('Collection not found');
-            return false;
-        }
-
-        // Check if artwork is already in collection
-        if (collection.artworkIds.includes(artworkId)) {
-            console.log('Artwork already in collection');
-            return false;
-        }
-
-        setCollections(
-            collections.map((col) =>
-                col.name === collectionName
-                    ? { ...col, artworkIds: [...col.artworkIds, artworkId] }
-                    : col
-            )
-        );
-
-        return true;
-    };
-
-    /**
-     * Remove artwork from a collection
-     * @param {number|string} artworkId - Artwork ID
-     * @param {string} collectionName - Collection name
-     * @returns {boolean} Success status
-     */
-    const removeFromCollection = (artworkId, collectionName) => {
-        setCollections(
-            collections.map((col) =>
-                col.name === collectionName
-                    ? {
-                        ...col,
-                        artworkIds: col.artworkIds.filter((id) => id !== artworkId)
-                    }
-                    : col
-            )
-        );
-
-        return true;
-    };
-
-    /**
-     * Check if artwork is in a specific collection
-     * @param {number|string} artworkId - Artwork ID
-     * @param {string} collectionName - Collection name
-     * @returns {boolean} True if artwork is in collection
-     */
-    const isInCollection = (artworkId, collectionName) => {
-        const collection = collections.find((col) => col.name === collectionName);
-        return collection ? collection.artworkIds.includes(artworkId) : false;
-    };
-
-    /**
-     * Get all collections that contain a specific artwork
-     * @param {number|string} artworkId - Artwork ID
-     * @returns {Array} Array of collection names
-     */
-    const getArtworkCollections = (artworkId) => {
-        return collections
-            .filter((col) => col.artworkIds.includes(artworkId))
-            .map((col) => col.name);
-    };
-
-    const value = {
-        collections,
-        createCollection,
-        deleteCollection,
-        addToCollection,
-        removeFromCollection,
-        isInCollection,
-        getArtworkCollections
-    };
+    const isSaved = (id) => savedArtworks.some(a => a.id === id);
 
     return (
-        <CollectionsContext.Provider value={value}>
+        <CollectionsContext.Provider value={{ savedArtworks, addToCollection, removeFromCollection, isSaved }}>
             {children}
         </CollectionsContext.Provider>
     );
-}
+};

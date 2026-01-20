@@ -4,57 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply antialiased text-text-primary bg-canvas font-sans;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-display tracking-tight;
-  }
+:root {
+  color-scheme: dark;
 }
 
-@layer components {
-
-  /* Custom Container to match design */
-  .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Smooth scrolling for anchor links */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full hover:bg-text-secondary/50 transition-colors;
-  }
+body {
+  @apply bg-art-bg text-art-text font-sans antialiased overflow-x-hidden selection:bg-art-accent selection:text-art-bg;
+  margin: 0;
+  padding: 0;
 }
 
-/* Animations that are hard to do with just utility classes */
-.hover-img-zoom {
-  overflow: hidden;
+/* Lenis or smooth scroll behavior request implied by 'premium feel' */
+html {
+  scroll-behavior: smooth;
 }
 
-.hover-img-zoom img {
-  transition: transform 0.5s ease;
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.hover-img-zoom:hover img {
-  transform: scale(1.05);
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
