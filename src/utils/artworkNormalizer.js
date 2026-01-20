@@ -34,7 +34,9 @@ export function normalizeArtworks(artworks) {
     if (!Array.isArray(artworks)) {
         return [];
     }
-    return artworks.map(normalizeArtInstitute).filter(artwork => artwork.id);
+    return artworks
+        .map(normalizeArtInstitute)
+        .filter(artwork => artwork.id && artwork.imageUrl);
 }
 
 /**
