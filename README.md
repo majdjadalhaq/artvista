@@ -1,16 +1,81 @@
-# React + Vite
+# ArtVista 🎨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**ArtVista** is a modern, responsive digital art gallery that aggregates masterpieces from the **Art Institute of Chicago** and **Europeana**. It features a "Museum Dark" aesthetic, cinematic animations, and a seamless user experience.
 
-Currently, two official plugins are available:
+## ✨ Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🖼️ Dual-API Aggregation
+- **Unified Feed**: Seamlessly merges data from two different museum APIs into a consistent format.
+- **Robust Error Handling**: "Try Again" mechanisms and skeleton loaders ensure smoothness even during network hiccups.
 
-## React Compiler
+### 🎥 Cinematic Motion
+- **Page Transitions**: Smooth slide and fade effects when navigating between views.
+- **Staggered Grid**: Artworks cascade into view for a premium feel.
+- **Micro-Interactions**: Satisfying "pop" effects on buttons and tactile hover states.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🏛️ Premium UI/UX
+- **Curated Collections**: Save your favorite artworks to your local gallery (persisted via LocalStorage).
+- **Responsive Design**: precise layouts for Mobile, Tablet, and Desktop, including a custom animated hamburger menu.
+- **Dark/Light Mode**: Fully themable interface with carefully tuned contrast variables.
 
-## Expanding the ESLint configuration
+## 🛠️ Technology Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Core**: React 19, Vite
+- **Styling**: Tailwind CSS, PostCSS
+- **Animations**: Framer Motion, GSAP
+- **Data**: Art Institute of Chicago API, Europeana API
+- **Icons**: Lucide React
+- **Routing**: React Router v6
+
+## 📂 Project Structure
+
+```
+src/
+├── components/
+│   ├── animations/      # PageTransition, ParticleBackground
+│   ├── artwork/         # ArtworkCard, ArtworkGrid
+│   ├── filters/         # FilterBar
+│   ├── layout/          # Header, Layout wrappers
+│   └── ui/              # Toast, ToastContainer
+├── context/
+│   ├── CollectionContext.jsx  # Favorite artworks state
+│   ├── ThemeContext.jsx       # Dark/Light mode state
+│   └── ToastContext.jsx       # Notification system
+├── hooks/
+│   ├── useArtworks.js         # Unified data fetching logic
+│   ├── useInfiniteScroll.js   # Pagination logic
+│   └── useLocalStorage.jsx    # Persistence hook
+├── pages/
+│   ├── Home.jsx
+│   ├── Explore.jsx
+│   ├── ArtworkDetail.jsx
+│   ├── Collection.jsx
+│   └── About.jsx
+└── services/
+    ├── artInstituteApi.js
+    └── europeanaApi.js
+```
+
+## 🚀 Getting Started
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/yourusername/artvista.git
+    ```
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+3.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
+4.  **Build for Production**
+    ```bash
+    npm run build
+    ```
+
+## 🎨 Design Philosophy
+
+**"Curating the World's Beauty"**
+We aimed to create an interface that steps back and lets the art shine. The UI uses glassmorphism, subtle gradients, and plenty of whitespace (or darkspace) to frame the masterpieces.

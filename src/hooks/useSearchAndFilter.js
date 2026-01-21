@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useDebounce } from './useDebounce';
 
 export const useSearchAndFilter = (initialDelay = 500) => {
     const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [filters, setFilters] = useState({
-        artist: null,
-        era: null,
+        artist: "",
+        era: "",
+        medium: "",
     });
 
-    // Debounce logic
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(search);
-        }, initialDelay);
-
-        return () => clearTimeout(timer);
-    }, [search, initialDelay]);
+    const debouncedSearch = useDebounce(search, initialDelay);
 
     const handleSearchChange = (value) => {
         if (value.length <= 50) {
@@ -24,13 +18,13 @@ export const useSearchAndFilter = (initialDelay = 500) => {
     };
 
     const clearFilters = () => {
-        setFilters({ artist: null, era: null });
+        setFilters({ artist: "", era: "", medium: "" });
         setSearch("");
     };
 
     return {
         search,
-        setSearch: handleSearchChange, // Enforce max length check
+        setSearch: handleSearchChange,
         debouncedSearch,
         filters,
         setFilters,

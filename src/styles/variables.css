@@ -1,0 +1,40 @@
+:root {
+    /* Lost Species Palette */
+    /* Deep Charcoal / Black - Primary Background */
+    --bg-primary: #0f0f0f;
+
+    /* Parchment / Cream - Secondary Background & Light Cards */
+    --bg-secondary: #EAE5D9;
+
+    /* Text Colors */
+    --text-primary: #EAE5D9;
+    /* Light on Dark */
+    --text-secondary: #bfb7a6;
+    /* Muted Gold/Dust */
+    --text-dark: #0f0f0f;
+    /* Dark on Light */
+    --text-muted-dark: #3a3a3a;
+    /* Muted Dark on Light */
+
+    /* Accents */
+    --accent-primary: #bfb7a6;
+    /* Dust */
+    --accent-secondary: #8c8577;
+    /* Darker Dust */
+
+    /* Functional */
+    --border: rgba(234, 229, 217, 0.2);
+    /* Subtle light border */
+    --shadow: rgba(0, 0, 0, 0.4);
+    --error: #aa4444;
+    --success: #44aa66;
+}
+
+.light-mode {
+    /* Inverted Mode (if needed for sections) */
+    --bg-primary: #EAE5D9;
+    --bg-secondary: #0f0f0f;
+    --text-primary: #0f0f0f;
+    --text-secondary: #3a3a3a;
+    --border: rgba(15, 15, 15, 0.2);
+}
