@@ -23,7 +23,7 @@ export default function Explore() {
     } = useArtworks();
 
     return (
-        <div className="min-h-screen bg-charcoal-ink text-dust-sand relative">
+        <div className="h-screen bg-charcoal-ink text-dust-sand relative overflow-hidden">
             <FilterBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -49,7 +49,7 @@ export default function Explore() {
             </motion.div>
 
             {/* Main Grid Area */}
-            <div className="pt-40 md:pt-48 pb-24 min-h-screen">
+            <div className="h-screen w-full relative overflow-hidden">
                 {artworks.length === 0 && loading ? (
                     <LoadingFallback />
                 ) : (

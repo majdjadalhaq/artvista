@@ -15,22 +15,25 @@ export default function ParallaxImage({ src, alt, speed = 1, className, artworkI
         const img = imgRef.current;
         if (!el || !img) return;
 
-        gsap.fromTo(img,
-            { y: '-10%' },
-            {
-                y: '10%',
-                ease: 'none',
-                scrollTrigger: {
-                    trigger: el,
-                    start: 'top bottom',
-                    end: 'bottom top',
-                    scrub: true
+        // Create specific ScrollTrigger for this instance
+        const ctx = gsap.context(() => {
+            gsap.fromTo(img,
+                { y: '-15%', scale: 1.1 },
+                {
+                    y: '15%',
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top bottom',
+                        end: 'bottom top',
+                        scrub: true
+                    }
                 }
-            }
-        );
+            );
+        }, el); // Scope to element
 
         return () => {
-            ScrollTrigger.getAll().forEach(t => t.kill());
+            ctx.revert(); // Clean cleanup using gsap.context
         };
     }, []);
 

@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 
 const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, className = '', onClick, gridMeta }, ref) {
     const { isSaved, addToCollection, removeFromCollection } = useCollection();
-    const { performanceMode } = useUI();
     const saved = isSaved(artwork.id);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -161,11 +160,11 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
 
                 {/* Metadata Overlay - Reveal on Hover/Focus */}
                 <motion.div
-                    className={`absolute inset-x-0 bottom-0 p-4 ${performanceMode ? 'bg-[var(--bg-secondary)]/60' : 'bg-[var(--bg-secondary)]/70'} border-t border-[var(--border)] transition-opacity`}
+                    className="absolute inset-x-0 bottom-0 p-4 bg-[var(--bg-secondary)]/70 border-t border-[var(--border)] transition-opacity"
                     variants={overlayVariants}
                     initial="initial"
-                    whileHover={performanceMode ? undefined : 'hover'}
-                    whileFocus={performanceMode ? undefined : 'hover'}
+                    whileHover="hover"
+                    whileFocus="hover"
                     aria-hidden="true"
                 >
                     <h3 className="font-serif text-lg font-bold text-[var(--accent-warm)] leading-tight mb-1 truncate">

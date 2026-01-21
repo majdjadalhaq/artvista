@@ -72,14 +72,7 @@ export default function FilterBar({
 
             {/* Filter Dropdowns Row */}
             <div className="flex flex-wrap justify-end items-center gap-2">
-                {/* Performance Mode Toggle */}
-                <button
-                    onClick={togglePerformanceMode}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-all ${performanceMode ? 'bg-white/10 border-white/30 text-white' : 'bg-charcoal-ink/80 border-white/20 text-white hover:border-turquoise-core/50'}`}
-                    title="Toggle Performance Mode"
-                >
-                    {performanceMode ? 'Performance: On' : 'Performance: Off'}
-                </button>
+
                 {Object.keys(filterOptions).map((key) => {
                     const isActive = !!filters[key];
                     return (
@@ -137,7 +130,6 @@ export default function FilterBar({
                     </button>
                 )}
             </div>
-
         </div>
     );
 }
