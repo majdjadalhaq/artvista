@@ -107,6 +107,6 @@ export const searchEuropeana = async (query, { signal, page = 1, rows = 20 } = {
 };
 
 export const europeanaApi = {
-    search: (params) => searchEuropeana(params.q, { page: params.page, rows: params.limit }),
+    search: (params) => searchEuropeana(params.q, { signal: params.signal, page: params.page, rows: params.limit }),
     // ... compat methods
 };

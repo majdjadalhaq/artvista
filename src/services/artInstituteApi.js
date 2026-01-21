@@ -60,7 +60,7 @@ export const searchArtic = async (query, { signal, page = 1, limit = 20 } = {}) 
             params.append('q', query);
         } else {
             // Default "curated" query if empty
-            params.append('q', "masterpiece");
+            params.append('q', "art");
             params.append('query[term][is_public_domain]', 'true');
         }
 
@@ -85,6 +85,6 @@ export const searchArtic = async (query, { signal, page = 1, limit = 20 } = {}) 
  * It's safer to keep these until full migration.
  */
 export const artInstituteApi = {
-    search: (params) => searchArtic(params.q, { page: params.page, limit: params.limit }),
+    search: (params) => searchArtic(params.q, { signal: params.signal, page: params.page, limit: params.limit }),
     // ... support other existing methods if needed or refactor strictly
 };

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Filter, ChevronDown } from 'lucide-react';
+import { ERA_CONFIG } from '../../utils/filterUtils';
 
 /**
  * FilterBar Component
@@ -11,15 +12,13 @@ export default function FilterBar({
     setSearchQuery,
     filters,
     setFilters,
-    onClearAll,
-    availableArtists // New prop
+    onClearAll
 }) {
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    // Dynamic Filter Options
+    // Filter Options with year ranges
     const filterOptions = {
-        artist: availableArtists || [], // Use dynamic list
-        era: ["Ancient", "Medieval", "Renaissance", "Modern", "Contemporary"]
+        era: Object.keys(ERA_CONFIG).map(key => ({ name: key, label: ERA_CONFIG[key].label }))
     };
 
     const toggleDropdown = (key) => {
@@ -35,6 +34,12 @@ export default function FilterBar({
         setFilters(prev => ({ ...prev, [key]: '' }));
     };
 
+    // Get display label for selected era
+    const getEraLabel = () => {
+        if (!filters.era) return 'ERA';
+        return ERA_CONFIG[filters.era]?.label || filters.era;
+    };
+
     return (
         <div className="fixed top-24 right-4 md:right-12 z-40 flex flex-col items-end gap-3 max-w-[90vw]">
 
@@ -45,7 +50,7 @@ export default function FilterBar({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search artworks..."
+                    placeholder="Search artist or artwork..."
                     className="bg-transparent border-none outline-none text-dust-sand text-sm placeholder:text-soft-clay/50 w-full"
                 />
                 {searchQuery && (
@@ -68,7 +73,7 @@ export default function FilterBar({
                                     : 'bg-charcoal-ink/80 border-white/20 text-white hover:border-turquoise-core/50 hover:text-white'
                                     }`}
                             >
-                                {isActive ? filters[key] : key}
+                                {key === 'era' ? getEraLabel() : (isActive ? filters[key] : key)}
                                 <ChevronDown size={12} className={`transition-transform ${activeDropdown === key ? 'rotate-180' : ''}`} />
                             </button>
 
@@ -82,16 +87,20 @@ export default function FilterBar({
                                         className="absolute right-0 mt-2 w-48 bg-charcoal-ink border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2"
                                     >
                                         <div className="max-h-60 overflow-y-auto custom-scrollbar">
-                                            {filterOptions[key].map(option => (
-                                                <button
-                                                    key={option}
-                                                    onClick={() => handleSelect(key, option)}
-                                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${filters[key] === option ? 'text-turquoise-core font-bold' : 'text-gray-50'
-                                                        }`}
-                                                >
-                                                    {option}
-                                                </button>
-                                            ))}
+                                            {filterOptions[key].map(option => {
+                                                const optionValue = option.name || option;
+                                                const optionLabel = option.label || option;
+                                                return (
+                                                    <button
+                                                        key={optionValue}
+                                                        onClick={() => handleSelect(key, optionValue)}
+                                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors ${filters[key] === optionValue ? 'text-turquoise-core font-bold' : 'text-gray-50'
+                                                            }`}
+                                                    >
+                                                        {optionLabel}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </motion.div>
                                 )}

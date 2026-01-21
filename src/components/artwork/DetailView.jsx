@@ -4,29 +4,20 @@ import { TextureLoader } from 'three';
 import { useUI } from '../../context/UIContext';
 import { useCollection } from '../../context/CollectionContext';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
-import { X, Heart, Maximize2, Minimize2, Share2, Info } from 'lucide-react';
+import { X, Heart, MapPin, Palette } from 'lucide-react';
 import { vertexShader, fragmentShader } from '../animations/FluidShader';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-/**
- * Interactive 3D Card
- * Reacts to mouse movement with shader distortion
- * UPDATED: Dynamic Aspect Ratio to fit image perfectly
- */
-function InteractiveCard({ imageUrl }) {
+function InteractiveCard({ imageUrl, isMobile }) {
     const mesh = useRef();
     const [texture, setTexture] = useState(null);
     const [aspect, setAspect] = useState(1);
-
-    // Mouse interaction for shader
     const mouse = useRef({ x: 0.5, y: 0.5 });
 
     useEffect(() => {
         const loader = new TextureLoader();
         loader.load(imageUrl || '/placeholder-art.jpg', (tex) => {
-            // Calculate aspect ratio to fit image perfectly
-            const imageAspect = tex.image.width / tex.image.height;
-            setAspect(imageAspect);
+            setAspect(tex.image.width / tex.image.height);
             setTexture(tex);
         });
 
@@ -52,210 +43,214 @@ function InteractiveCard({ imageUrl }) {
         if (mesh.current && texture) {
             mesh.current.material.uniforms.uTexture.value = texture;
             mesh.current.material.uniforms.uTime.value = state.clock.getElapsedTime();
-            // Enter animation
             mesh.current.material.uniforms.uOpacity.value += (1 - mesh.current.material.uniforms.uOpacity.value) * 0.08;
-            // Mouse tracking
-            const targetX = mouse.current.x;
-            const targetY = mouse.current.y;
-            mesh.current.material.uniforms.uMouse.value = [targetX, targetY];
-            // Hover effect (simulated constant "alive" feel)
-            mesh.current.material.uniforms.uHover.value = Math.sin(state.clock.getElapsedTime()) * 0.5 + 0.5;
+            mesh.current.material.uniforms.uMouse.value = [mouse.current.x, mouse.current.y];
 
-            // Subtle rotation
-            mesh.current.rotation.y = (mouse.current.x - 0.5) * 0.2;
-            mesh.current.rotation.x = (mouse.current.y - 0.5) * 0.2;
+            if (!isMobile) {
+                mesh.current.rotation.y = (mouse.current.x - 0.5) * 0.15;
+                mesh.current.rotation.x = (mouse.current.y - 0.5) * 0.15;
+            }
         }
     });
 
-    // Dynamic Sizing Logic to "Fit" whole picture
-    const MAX_DIM = 7;
-    let width = 4.5;
-    let height = 6;
+    const scaleFactor = isMobile ? 3.5 : 6;
+    let width = scaleFactor;
+    let height = scaleFactor;
 
     if (texture) {
-        if (aspect > 1) { // Landscape
-            width = Math.min(MAX_DIM, 6 * aspect); // Scale width
+        if (aspect > 1) {
+            width = Math.min(isMobile ? 3.5 : 7, scaleFactor * aspect);
             height = width / aspect;
-        } else { // Portrait
-            height = Math.min(MAX_DIM, 6 / aspect); // Scale height
+        } else {
+            height = Math.min(isMobile ? 5 : 7, scaleFactor / aspect);
             width = height * aspect;
         }
     }
 
     return (
         <mesh ref={mesh}>
-            <planeGeometry args={[width, height, 64, 64]} />
-            <shaderMaterial
-                fragmentShader={fragmentShader}
-                vertexShader={vertexShader}
-                uniforms={uniforms}
-                transparent={true}
-            />
+            <planeGeometry args={[width, height, 48, 48]} />
+            <shaderMaterial fragmentShader={fragmentShader} vertexShader={vertexShader} uniforms={uniforms} transparent={true} />
         </mesh>
     );
 }
 
-/**
- * Avant-Garde Detail View
- * "Glass Monolith" Design
- */
 export default function DetailView() {
     const { selectedArtwork, closeArtwork } = useUI();
     const { addToCollection, removeFromCollection, collection } = useCollection();
-    const [showInfo, setShowInfo] = useState(true);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useKeyboardNavigation({ onEscape: closeArtwork });
 
     if (!selectedArtwork) return null;
 
     const isSaved = collection.some(item => item.id === selectedArtwork.id);
-
-    // Smooth layout transitions
-    const backdropVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.5 } }
-    };
-
-    const panelVariants = {
-        hidden: { x: '100%', opacity: 0 },
-        visible: { x: '0%', opacity: 1, transition: { type: 'spring', damping: 25, stiffness: 200 } }
-    };
+    const imageSrc = selectedArtwork.image_large || selectedArtwork.image || selectedArtwork.imageUrl;
+    const isKnownArtist = selectedArtwork.artist && selectedArtwork.artist.toLowerCase() !== 'unknown';
 
     return (
         <AnimatePresence>
             <motion.div
-                key="backdrop"
-                variants={backdropVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                className="fixed inset-0 z-[150] flex items-center justify-center overflow-hidden bg-black"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-charcoal-ink overflow-hidden"
             >
-                {/* 1. Cinematic Background Blur */}
-                <div
-                    className="absolute inset-0 opacity-40 blur-3xl scale-125 transition-all duration-1000"
-                    style={{
-                        backgroundImage: `url(${selectedArtwork.image_large || selectedArtwork.image})`,
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover'
-                    }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-ink via-charcoal-ink/80 to-transparent" />
-
-                {/* 2. Main 3D Stage (The "Pic") */}
-                <div className={`relative z-10 w-full h-full transition-all duration-500 ease-in-out ${showInfo ? 'md:w-3/5 translate-x-0' : 'w-full scale-110'}`}>
-                    <Canvas camera={{ position: [0, 0, 8], fov: 45 }} className="w-full h-full pointer-events-auto">
-                        <Suspense fallback={null}>
-                            <InteractiveCard imageUrl={selectedArtwork.image_large || selectedArtwork.image} />
-                        </Suspense>
-                    </Canvas>
-
-                    {/* Stage Controls */}
-                    <div className="absolute bottom-8 left-8 flex gap-4">
-                        <button
-                            onClick={() => setShowInfo(!showInfo)}
-                            className="p-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all group"
-                        >
-                            {showInfo ? <Maximize2 size={20} /> : <Minimize2 size={20} />}
-                            <span className="sr-only">Toggle View</span>
-                        </button>
+                {/* Left Side - Artwork Image */}
+                <div className="relative w-full h-[45vh] md:h-full md:w-3/5 lg:w-2/3 bg-black overflow-hidden">
+                    <div className="absolute inset-0 opacity-30 blur-3xl scale-110" style={{ backgroundImage: `url(${imageSrc})`, backgroundSize: 'cover' }} />
+                    <div className="absolute inset-0 z-10">
+                        <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
+                            <Suspense fallback={null}>
+                                <InteractiveCard imageUrl={imageSrc} isMobile={isMobile} />
+                            </Suspense>
+                        </Canvas>
                     </div>
+                    <button onClick={closeArtwork} className="md:hidden absolute top-4 right-4 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-black/70 transition-all">
+                        <X size={20} />
+                    </button>
                 </div>
 
-                {/* 3. Floating Glass Info Panel (The "Info") */}
-                <AnimatePresence>
-                    {showInfo && (
-                        <motion.div
-                            variants={panelVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            className="absolute right-0 top-0 bottom-0 w-full md:w-[450px] bg-charcoal-ink/80 backdrop-blur-2xl border-l border-white/5 shadow-2xl p-8 md:p-12 flex flex-col z-20 overflow-y-auto custom-scrollbar"
+                {/* Right Side - Info Panel */}
+                <motion.div
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="w-full h-[55vh] md:h-full md:w-2/5 lg:w-1/3 bg-gradient-to-b from-charcoal-ink via-charcoal-ink to-black/80 border-l border-white/5 flex flex-col relative shadow-2xl overflow-hidden"
+                >
+                    {/* Close Button - Desktop */}
+                    <div className="hidden md:flex justify-end p-6 pb-2">
+                        <button onClick={closeArtwork} className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {/* Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-8 py-2 md:py-4">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            transition={{ delay: 0.2 }}
+                            className="space-y-6"
                         >
-                            {/* Header Actions */}
-                            <div className="flex justify-between items-center mb-12">
-                                <span className="text-xs uppercase tracking-[0.3em] text-turquoise-core/80">
-                                    {selectedArtwork.id.split('_')[0]}
+                            {/* Badge */}
+                            <div>
+                                <span className="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-turquoise-core bg-turquoise-core/10 rounded-full border border-turquoise-core/30">
+                                    {selectedArtwork.source}
                                 </span>
-                                <button onClick={closeArtwork} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                    <X size={24} className="text-white/70" />
-                                </button>
                             </div>
 
-                            {/* Typography Art */}
-                            <motion.h1
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className="text-4xl md:text-5xl font-serif text-dust-sand mb-4 leading-none"
-                            >
-                                {selectedArtwork.title}
-                            </motion.h1>
-
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: '60px' }}
-                                transition={{ delay: 0.4, duration: 0.8 }}
-                                className="h-1 bg-turquoise-core mb-6"
-                            />
-
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.3 }}
-                                className="text-xl text-soft-clay font-medium italic mb-8"
-                            >
-                                {selectedArtwork.artist}
-                            </motion.p>
-
-                            {/* Interactive Data Grid */}
-                            <div className="grid grid-cols-2 gap-y-8 gap-x-4 mb-12">
-                                <InfoItem label="Date" value={selectedArtwork.year} delay={0.4} />
-                                <InfoItem label="Origin" value={selectedArtwork.origin} delay={0.5} />
-                                <InfoItem label="Medium" value={selectedArtwork.medium} delay={0.6} />
-                                <InfoItem label="Source" value={selectedArtwork.source} delay={0.7} />
+                            {/* Artwork Title */}
+                            <div>
+                                <h1 className="text-2xl md:text-4xl font-serif text-dust-sand leading-tight mb-2">
+                                    {selectedArtwork.title}
+                                </h1>
                             </div>
 
-                            <div className="prose prose-sm prose-invert text-soft-clay/80 mb-12 leading-relaxed">
-                                <p>{selectedArtwork.description || "A masterwork from the collection, preserved digitally for your exploration."}</p>
-                            </div>
-
-                            {/* Floating Action Bar */}
-                            <div className="mt-auto pt-8 flex gap-4 border-t border-white/5">
-                                <button
-                                    onClick={() => isSaved ? removeFromCollection(selectedArtwork.id) : addToCollection(selectedArtwork)}
-                                    className={`flex-1 py-4 px-6 rounded-lg uppercase tracking-widest text-xs font-bold border transition-all flex items-center justify-center gap-3 ${isSaved
-                                            ? 'bg-muted-copper text-charcoal-ink border-muted-copper hover:bg-white'
-                                            : 'bg-transparent border-turquoise-core text-turquoise-core hover:bg-turquoise-core hover:text-charcoal-ink'
-                                        }`}
+                            {/* Artist Section - Only if Known */}
+                            {isKnownArtist ? (
+                                <motion.div 
+                                    initial={{ opacity: 0 }} 
+                                    animate={{ opacity: 1 }} 
+                                    transition={{ delay: 0.3 }}
+                                    className="pt-4 border-t border-white/10"
                                 >
-                                    <Heart size={16} fill={isSaved ? "currentColor" : "none"} />
-                                    {isSaved ? 'Saved' : 'Collect'}
-                                </button>
+                                    <div className="flex items-start gap-4">
+                                        {/* Artist Avatar/Placeholder */}
+                                        <div className="flex-shrink-0">
+                                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-turquoise-core/40 to-muted-copper/40 border border-turquoise-core/30 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
+                                                    <span className="text-sm font-serif text-turquoise-core">
+                                                        {selectedArtwork.artist.charAt(0).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Artist Info */}
+                                        <div className="flex-1 pt-1">
+                                            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Artist</p>
+                                            <p className="text-soft-clay font-serif text-lg">
+                                                {selectedArtwork.artist}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ) : null}
 
-                                <button className="p-4 rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all">
-                                    <Share2 size={18} />
-                                </button>
-                            </div>
+                            {/* Metadata Grid */}
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }} 
+                                transition={{ delay: 0.35 }}
+                                className="grid grid-cols-2 gap-4 py-4 border-y border-white/10"
+                            >
+                                {selectedArtwork.year && (
+                                    <div>
+                                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">Year</p>
+                                        <p className="text-dust-sand font-medium">{selectedArtwork.year}</p>
+                                    </div>
+                                )}
+                                {selectedArtwork.medium && (
+                                    <div>
+                                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                            <Palette size={12} /> Medium
+                                        </p>
+                                        <p className="text-dust-sand font-medium text-sm">{selectedArtwork.medium}</p>
+                                    </div>
+                                )}
+                                {selectedArtwork.origin && (
+                                    <div className="col-span-2">
+                                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                            <MapPin size={12} /> Origin
+                                        </p>
+                                        <p className="text-dust-sand font-medium text-sm">{selectedArtwork.origin}</p>
+                                    </div>
+                                )}
+                            </motion.div>
+
+                            {/* Description */}
+                            {selectedArtwork.description && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }} 
+                                    animate={{ opacity: 1 }} 
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <p className="text-[10px] text-white/40 uppercase tracking-widest mb-3">Description</p>
+                                    <p className="text-soft-clay/90 leading-relaxed font-light text-sm line-clamp-4">
+                                        {selectedArtwork.description}
+                                    </p>
+                                </motion.div>
+                            )}
                         </motion.div>
-                    )}
-                </AnimatePresence>
+                    </div>
 
+                    {/* Action Button */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        transition={{ delay: 0.5 }}
+                        className="p-6 md:p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0"
+                    >
+                        <button
+                            onClick={() => isSaved ? removeFromCollection(selectedArtwork.id) : addToCollection(selectedArtwork)}
+                            className={`w-full py-3 md:py-4 rounded-lg uppercase tracking-widest text-xs font-bold transition-all flex items-center justify-center gap-3 shadow-lg transform hover:scale-105 active:scale-95 ${isSaved
+                                ? 'bg-muted-copper text-white border border-muted-copper/50 hover:bg-muted-copper/90'
+                                : 'bg-turquoise-core text-charcoal-ink border border-turquoise-core/50 hover:bg-white'
+                                }`}
+                        >
+                            <Heart size={18} fill={isSaved ? "currentColor" : "none"} />
+                            {isSaved ? 'In Collection' : 'Add to Collection'}
+                        </button>
+                    </motion.div>
+                </motion.div>
             </motion.div>
         </AnimatePresence>
-    );
-}
-
-// Helper for animated grid items
-function InfoItem({ label, value, delay }) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
-        >
-            <h4 className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{label}</h4>
-            <p className="text-dust-sand font-medium">{value || '—'}</p>
-        </motion.div>
     );
 }

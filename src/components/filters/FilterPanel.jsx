@@ -23,7 +23,6 @@ export default function FilterPanel({ filters, onUpdateFilter, onReset }) {
     // Count active filters
     useEffect(() => {
         let count = 0;
-        if (filters?.artist) count++;
         if (filters?.medium) count++;
         if (filters?.era) count++;
         if (filters?.query) count++;
@@ -31,14 +30,6 @@ export default function FilterPanel({ filters, onUpdateFilter, onReset }) {
     }, [filters]);
 
     const filterOptions = {
-        artist: [
-            { value: '', label: 'All Artists' },
-            { value: 'Van Gogh', label: 'Van Gogh' },
-            { value: 'Monet', label: 'Monet' },
-            { value: 'Picasso', label: 'Picasso' },
-            { value: 'Da Vinci', label: 'Da Vinci' },
-            { value: 'Rembrandt', label: 'Rembrandt' },
-        ],
         medium: [
             { value: '', label: 'All Mediums' },
             { value: 'Painting', label: 'Painting' },
@@ -146,8 +137,8 @@ export default function FilterPanel({ filters, onUpdateFilter, onReset }) {
                                         value={filters?.[filterKey] || ''}
                                         onChange={(e) => onUpdateFilter(filterKey, e.target.value)}
                                         className={`w-full px-4 py-3 rounded-xl border bg-graphite text-dust-sand focus:ring-2 focus:ring-turquoise-core/50 focus:outline-none text-sm transition-all ${filters?.[filterKey]
-                                                ? 'border-turquoise-core ring-2 ring-turquoise-core/20'
-                                                : 'border-turquoise-core/20'
+                                            ? 'border-turquoise-core ring-2 ring-turquoise-core/20'
+                                            : 'border-turquoise-core/20'
                                             }`}
                                         aria-label={`Filter by ${filterKey}`}
                                     >

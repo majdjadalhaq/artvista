@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { artInstituteApi } from '../services/artInstituteApi';
 import { europeanaApi } from '../services/europeanaApi';
 import { useDebounce } from './useDebounce';
-import { matchesArtist, matchesEra, normalizeString } from '../utils/filterUtils';
+import { matchesEra, matchesSearchQuery, sortBySearchRelevance } from '../utils/filterUtils';
 
 export function useArtworks() {
-    // Raw Data State (Server Response)
+    // Raw Data State
     const [allArtworks, setAllArtworks] = useState([]);
 
     // UI State
@@ -15,27 +15,32 @@ export function useArtworks() {
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');
-    const [filters, setFilters] = useState({ artist: '', era: '' }); // 'medium' removed
+    const [filters, setFilters] = useState({ era: '' });
 
-    // Pagination
-    const [page, setPage] = useState(1);
+    // Track API Page separately
+    const [apiPage, setApiPage] = useState(1);
 
-    // Debounce Search - Only this triggers API refetch
+    // Debounce Search
     const debouncedQuery = useDebounce(searchQuery, 300);
-
-    // Abort Controller
     const abortControllerRef = useRef(null);
+    const hasInitialized = useRef(false);
+    const apiPageRef = useRef(1);
 
-    // 1. Reset RAW data when SEARCH query changes (Server-side)
+    // 1. Reset on Search Change
     useEffect(() => {
         setAllArtworks([]);
-        setPage(1);
+        setApiPage(1);
+        apiPageRef.current = 1;
         setHasMore(true);
         setError(null);
+        setFilters(f => ({ ...f, era: '' }));
+        hasInitialized.current = false;
     }, [debouncedQuery]);
 
-    // 2. MAIN FETCH (Server-Side Search)
-    const fetchArtworks = useCallback(async () => {
+    // 2. CONTINUOUS FETCH - Always fetch and add artworks, NEVER stop infinite scroll
+    const fetchNextBatch = useCallback(async () => {
+        if (loading) return; // Only prevent if currently loading
+
         if (abortControllerRef.current) abortControllerRef.current.abort();
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -44,16 +49,23 @@ export function useArtworks() {
         setError(null);
 
         try {
-            // Only pass 'q' and 'page'. Filters are client-side now.
-            const params = {
-                q: debouncedQuery,
-                page: page,
-                limit: 20,
-            };
+            const currentPage = apiPageRef.current;
+            
+            // For diverse random feed when no search query, use varied terms
+            let queryToUse = debouncedQuery;
+            if (!debouncedQuery) {
+                // Rotate through diverse art-related terms for variety
+                const diverseTerms = ['painting', 'sculpture', 'portrait', 'landscape', 'modern art', 'abstract', 'impressionism', 'renaissance', 'baroque', 'cubism', 'expressionism', 'realism', 'watercolor', 'digital art', 'photography', 'installation', 'drawing', 'printmaking', 'textile', 'decorative arts', 'architecture', 'still life', 'mythology', 'historical', 'figurative', 'contemporary'];
+                const termIndex = (currentPage - 1) % diverseTerms.length;
+                queryToUse = diverseTerms[termIndex];
+            }
 
+            const params = { q: queryToUse, page: currentPage, limit: 50, signal: controller.signal };
+
+            // Fetch from both APIs in parallel
             const results = await Promise.allSettled([
-                artInstituteApi.search(params.q, { signal: controller.signal, page: params.page, limit: params.limit }),
-                europeanaApi.search(params.q, { signal: controller.signal, page: params.page, rows: params.limit })
+                artInstituteApi.search(params),
+                europeanaApi.search(params)
             ]);
 
             if (controller.signal.aborted) return;
@@ -61,26 +73,38 @@ export function useArtworks() {
             const aicResult = results[0].status === 'fulfilled' ? results[0].value : { data: [] };
             const euroResult = results[1].status === 'fulfilled' ? results[1].value : { data: [] };
 
-            const newFetched = [
-                ...(aicResult.data || []),
-                ...(euroResult.data || [])
-            ];
-
-            // Append to RAW list
-            setAllArtworks(prev => {
-                const combined = [...prev, ...newFetched];
-                // Deduplicate by ID
-                const seen = new Set();
-                return combined.filter(item => {
-                    if (seen.has(item.id)) return false;
-                    seen.add(item.id);
-                    return true;
-                });
-            });
-
-            if (aicResult.data.length === 0 && euroResult.data.length === 0) {
-                setHasMore(false);
+            if (results[0].status === 'rejected') {
+                console.warn('AIC API error:', results[0].reason?.message || results[0].reason);
             }
+            if (results[1].status === 'rejected') {
+                console.warn('Europeana API error:', results[1].reason?.message || results[1].reason);
+            }
+
+            const rawData = [...(aicResult.data || []), ...(euroResult.data || [])];
+
+            // FILTER: Only keep items with images
+            const validItems = rawData.filter(art =>
+                art.imageUrl || art.image_large || art.image_small || art.image
+            );
+
+            // Add valid items to state and continue loading
+            if (validItems.length > 0) {
+                setAllArtworks(prev => {
+                    const combined = [...prev, ...validItems];
+                    // Deduplicate by ID
+                    const seen = new Set();
+                    return combined.filter(item => {
+                        if (seen.has(item.id)) return false;
+                        seen.add(item.id);
+                        return true;
+                    });
+                });
+            }
+            
+            // ALWAYS increment page - we keep loading forever
+            apiPageRef.current = currentPage + 1;
+            setApiPage(currentPage + 1);
+            // hasMore is always true - infinite scroll never stops
 
         } catch (err) {
             if (err.name !== 'AbortError') {
@@ -90,56 +114,50 @@ export function useArtworks() {
         } finally {
             if (!controller.signal.aborted) setLoading(false);
         }
-    }, [debouncedQuery, page]);
+    }, [loading, debouncedQuery]);
 
-    // Trigger Fetch
+    // Initial Load - Trigger only once when debouncedQuery changes
     useEffect(() => {
-        fetchArtworks();
-        return () => abortControllerRef.current?.abort();
-    }, [fetchArtworks]);
+        if (!hasInitialized.current && allArtworks.length === 0) {
+            hasInitialized.current = true;
+            fetchNextBatch();
+        }
+    }, [debouncedQuery]);
 
-    // 3. CLIENT-SIDE FILTERING (Refine Logic)
-    // Filter the RAW filteredArtworks based on selected Artist/Era
+    // Client-Side Filter (Era + Fuzzy Search with ranking)
     const filteredArtworks = useMemo(() => {
-        return allArtworks.filter(artwork => {
-            const matchesA = matchesArtist(artwork, filters.artist);
-            const matchesE = matchesEra(artwork, filters.era);
-            return matchesA && matchesE;
-        });
-    }, [allArtworks, filters]);
+        let filtered = allArtworks;
 
-    // 4. DYNAMIC ARTIST LIST (Facets)
-    // Derived from the RAW (search-filtered) data, NOT the fully filtered data
-    // This allows users to see available artists for their search even if they select one.
-    const availableArtists = useMemo(() => {
-        const artists = new Set();
-        allArtworks.forEach(art => {
-            if (art.artist) artists.add(art.artist);
-        });
-        return Array.from(artists).sort(); // Alphabetical
-    }, [allArtworks]);
+        // Apply era filter first if selected
+        if (filters.era) {
+            filtered = filtered.filter(artwork => matchesEra(artwork, filters.era));
+        }
 
-    const loadMore = () => {
-        if (!loading && hasMore) setPage(prev => prev + 1);
-    };
+        // Apply fuzzy search and get instant results sorted by relevance
+        if (debouncedQuery.trim()) {
+            filtered = filtered
+                .filter(artwork => matchesSearchQuery(artwork, debouncedQuery))
+                .sort((a, b) => (b.searchScore || 0) - (a.searchScore || 0));
+        }
+
+        return filtered;
+    }, [allArtworks, filters, debouncedQuery]);
 
     const onClearAll = () => {
         setSearchQuery('');
-        setFilters({ artist: '', era: '' });
+        setFilters({ era: '' });
     };
 
     return {
-        artworks: filteredArtworks, // Return processed list
+        artworks: filteredArtworks,
         loading,
         error,
-        hasMore,
-        loadMore,
+        hasMore: true, // Always true - infinite scroll never stops
+        loadMore: fetchNextBatch,
         searchQuery,
         setSearchQuery,
         filters,
-        setFilters, // Expose raw setter
-        updateFilter: (key, val) => setFilters(p => ({ ...p, [key]: val })),
-        onClearAll,
-        availableArtists // Use this in UI
+        setFilters,
+        onClearAll
     };
 }

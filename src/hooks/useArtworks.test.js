@@ -17,10 +17,10 @@ describe('useArtworks Hook', () => {
     test('should fetch and merge data from both APIs', async () => {
         // Mock Successful Returns
         artInstituteApi.search.mockResolvedValue({
-            data: [{ id: 'artic_1', title: 'AIC Art' }]
+            data: [{ id: 'artic_1', title: 'AIC Art', imageUrl: 'http://example.com/img1.jpg' }]
         });
         europeanaApi.search.mockResolvedValue({
-            data: [{ id: 'europeana_1', title: 'Europeana Art' }]
+            data: [{ id: 'europeana_1', title: 'Europeana Art', imageUrl: 'http://example.com/img2.jpg' }]
         });
 
         const { result } = renderHook(() => useArtworks());
