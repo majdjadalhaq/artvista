@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import FilterBar from '../components/filters/FilterBar';
 import MosaicGrid from '../components/gallery/MosaicGrid';
 import LoadingFallback from '../components/gallery/LoadingFallback';
+import EmptyResult from '../components/ui/EmptyResult';
 import DetailView from '../components/artwork/DetailView';
 import { useArtworks } from '../hooks/useArtworks';
 import { useUI } from '../context/UIContext';
@@ -70,12 +71,7 @@ export default function Explore() {
                 )}
                 {/* Empty State */}
                 {!loading && artworks.length === 0 && !error && (
-                    <div className="flex flex-col items-center justify-center min-h-[50vh] text-soft-clay">
-                        <p className="text-xl font-serif mb-4">No artworks found</p>
-                        <button onClick={onClearAll} className="text-turquoise-core hover:underline underline-offset-4">
-                            Reset filters
-                        </button>
-                    </div>
+                    <EmptyResult onReset={onClearAll} />
                 )}
             </div>
 

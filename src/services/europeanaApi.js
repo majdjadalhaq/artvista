@@ -15,7 +15,12 @@ const API_KEY = import.meta.env.VITE_EUROPEANA_API_KEY || "api2demo";
  */
 export const normalizeEuropeana = (item) => {
     const title = Array.isArray(item.title) ? item.title[0] : (item.title || "Untitled");
-    const artist = Array.isArray(item.dcCreator) ? item.dcCreator[0] : "Unknown Artist";
+    let artist = Array.isArray(item.dcCreator) ? item.dcCreator[0] : "Unknown Artist";
+
+    // Sanitize: If the artist name is actually a URL (common in Europeana data), fallback to "Unknown"
+    if (artist && (artist.startsWith('http') || artist.includes('://') || artist.includes('www.'))) {
+        artist = "Unknown Artist";
+    }
 
     // We try to find a year from different possible fields.
     let year = "Unknown";
@@ -32,15 +37,15 @@ export const normalizeEuropeana = (item) => {
 
     return {
         id: `europeana_${safeId}`,
-        title: title,
-        artist: artist,
-        year: year,
-        medium: Array.isArray(item.type) ? item.type[0] : (item.type || "Unknown"),
-        origin: Array.isArray(item.country) ? item.country[0] : "Unknown",
+        title: typeof title === 'string' ? title : (title ? String(title) : 'Untitled'),
+        artist: typeof artist === 'string' ? artist : (artist ? String(artist) : 'Unknown Artist'),
+        year: typeof year === 'string' ? year : (year ? String(year) : 'Unknown'),
+        medium: Array.isArray(item.type) ? (typeof item.type[0] === 'string' ? item.type[0] : (item.type[0] ? String(item.type[0]) : 'Unknown')) : (typeof item.type === 'string' ? item.type : (item.type ? String(item.type) : 'Unknown')),
+        origin: Array.isArray(item.country) ? (typeof item.country[0] === 'string' ? item.country[0] : (item.country[0] ? String(item.country[0]) : 'Unknown')) : (typeof item.country === 'string' ? item.country : (item.country ? String(item.country) : 'Unknown')),
         imageUrl: finalImage,
         image_small: image,
         image_large: largeImage,
-        description: Array.isArray(item.dcDescription) ? item.dcDescription[0] : null,
+        description: Array.isArray(item.dcDescription) ? (typeof item.dcDescription[0] === 'string' ? item.dcDescription[0] : (item.dcDescription[0] ? String(item.dcDescription[0]) : null)) : (typeof item.dcDescription === 'string' ? item.dcDescription : (item.dcDescription ? String(item.dcDescription) : null)),
         source: 'europeana'
     };
 };

@@ -12,12 +12,11 @@ const AIC_BASE = "https://api.artic.edu/api/v1/artworks";
  */
 export const normalizeAIC = (item) => ({
     id: `artic_${item.id}`,
-    title: item.title || "Untitled",
-    artist: item.artist_display || "Unknown Artist",
-    year: item.date_display || "Unknown",
-    medium: item.medium_display || "Unknown",
-    origin: item.place_of_origin || "Unknown",
-    // We try to get the best image available.
+    title: typeof item.title === 'string' ? item.title : (item.title ? String(item.title) : "Untitled"),
+    artist: typeof item.artist_display === 'string' ? item.artist_display : (item.artist_display ? String(item.artist_display) : "Unknown Artist"),
+    year: typeof item.date_display === 'string' ? item.date_display : (item.date_display ? String(item.date_display) : "Unknown"),
+    medium: typeof item.medium_display === 'string' ? item.medium_display : (item.medium_display ? String(item.medium_display) : "Unknown"),
+    origin: typeof item.place_of_origin === 'string' ? item.place_of_origin : (item.place_of_origin ? String(item.place_of_origin) : "Unknown"),
     imageUrl: item.image_id
         ? `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`
         : null,
@@ -27,7 +26,7 @@ export const normalizeAIC = (item) => ({
     image_large: item.image_id
         ? `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`
         : null,
-    description: item.description || item.thumbnail?.alt_text || null,
+    description: typeof item.description === 'string' ? item.description : (item.thumbnail?.alt_text ? String(item.thumbnail.alt_text) : null),
     source: 'artic'
 });
 
@@ -55,8 +54,10 @@ export const searchArtic = async (query, { signal, page = 1, limit = 20 } = {}) 
         } else {
             // If the user didn't type anything, we just ask for "art" to show them something nice.
             params.append('q', "art");
-            params.append('query[term][is_public_domain]', 'true');
         }
+
+        // Always filter for public domain images to ensure we can display them (fixes 403 errors)
+        params.append('query[term][is_public_domain]', 'true');
 
         // We use our helper to fetch the data safely.
         const response = await fetchWithRetry(`${endpoint}?${params.toString()}`, {

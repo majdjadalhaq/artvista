@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { fetchUnifiedArtworks } from '../services/artworkService'; // We use our new service here.
 import { useDebounce } from './useDebounce';
-import { matchesEra, matchesSearchQuery, matchesArtist, getEra, parseYear, ERA_CONFIG } from '../utils/filterUtils';
+import { matchesEra, matchesSearchQuery, matchesArtist, getEra, parseYear, ERA_CONFIG, extractArtistName } from '../utils/filterUtils';
 
 export function useArtworks() {
     // This holds all the artwork data we have loaded so far.
@@ -166,8 +166,10 @@ export function useArtworks() {
         const artistCounts = {};
         artistBase.forEach(art => {
             if (art.artist) {
-                const name = art.artist;
-                artistCounts[name] = (artistCounts[name] || 0) + 1;
+                const name = extractArtistName(art.artist);
+                if (name && !name.toLowerCase().includes('unknown')) {
+                    artistCounts[name] = (artistCounts[name] || 0) + 1;
+                }
             }
         });
 

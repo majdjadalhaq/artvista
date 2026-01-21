@@ -10,10 +10,17 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
 
-    // Helper to get best image source
-    const getArtworkImage = useCallback(() => (
-        artwork.image_large || artwork.image || artwork.image_url || artwork.imageUrl || '/placeholder-art.jpg'
-    ), [artwork]);
+    // Helper to get best image source, returns null if none
+    const getArtworkImage = useCallback(() => {
+        return (
+            artwork.image_large ||
+            artwork.imageUrl ||
+            artwork.image ||
+            artwork.image_small ||
+            artwork.image_url ||
+            null
+        );
+    }, [artwork]);
 
     const toggleSave = useCallback((e) => {
         e.preventDefault();
@@ -75,16 +82,26 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                         <div className="absolute inset-0 z-0 bg-gray-800 animate-pulse min-h-[200px]" />
                     )}
 
-                    <motion.img
-                        variants={imageVariants}
-                        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        src={getArtworkImage()}
-                        alt={artwork.title || 'Artwork'}
-                        className={`w-full h-auto object-cover block align-bottom transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        onLoad={() => setImageLoaded(true)}
-                        onError={() => setImageError(true)}
-                        loading="lazy"
-                    />
+                    {/* Show fallback if image fails or is missing */}
+                    {(!imageError && getArtworkImage()) ? (
+                        <motion.img
+                            variants={imageVariants}
+                            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                            src={getArtworkImage()}
+                            alt={typeof artwork.title === 'string' ? artwork.title : 'Artwork'}
+                            className={`w-full h-auto object-cover block align-bottom transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                            onLoad={() => setImageLoaded(true)}
+                            onError={() => setImageError(true)}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <img
+                            src="/placeholder-art.jpg"
+                            alt="Artwork unavailable"
+                            className="w-full h-auto object-cover block align-bottom opacity-80"
+                            style={{ minHeight: 200 }}
+                        />
+                    )}
 
                     {/* Gradient Overlay for Text Readability - Only on Hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -113,14 +130,14 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                         className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform-gpu"
                     >
                         <h3 className="font-serif text-xl md:text-2xl font-medium tracking-tight leading-none mb-2 line-clamp-2 drop-shadow-md">
-                            {artwork.title}
+                            {typeof artwork.title === 'string' ? artwork.title : 'Untitled'}
                         </h3>
                         <div className="flex items-center justify-between text-white/80 text-sm font-sans tracking-wide">
                             <span className="truncate pr-4 border-r border-white/20 mr-4">
-                                {artwork.artist || 'Unknown Artist'}
+                                {typeof artwork.artist === 'string' ? artwork.artist : 'Unknown Artist'}
                             </span>
                             <span className="whitespace-nowrap tabular-nums opacity-70">
-                                {artwork.year || ''}
+                                {typeof artwork.year === 'string' ? artwork.year : ''}
                             </span>
                         </div>
                     </motion.div>

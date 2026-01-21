@@ -97,7 +97,8 @@ export const matchesArtist = (artwork, selectedArtist) => {
     if (!selectedArtist) return true;
     if (!artwork.artist) return false;
 
-    return normalizeString(artwork.artist) === normalizeString(selectedArtist);
+    // Compare extracted names to ensure matches despite metadata variations
+    return normalizeString(extractArtistName(artwork.artist)) === normalizeString(selectedArtist);
 };
 
 /**
@@ -204,11 +205,16 @@ export const sortBySearchRelevance = (artworks) => {
  */
 export const extractArtistName = (artistString) => {
     if (!artistString) return '';
-    
+
+    // Filter out URLs (e.g. valid authorities links that Europeana sometimes returns)
+    if (artistString.includes('http') || artistString.includes('://') || artistString.includes('www.')) {
+        return '';
+    }
+
     // Split by opening parenthesis and take first part
     const parts = artistString.split('(');
     let name = parts[0].trim();
-    
+
     // If no parenthesis, split by common separators like "AMERICAN,", "SPANISH,"
     if (parts.length === 1) {
         // Try to split on common nationality/birth patterns
@@ -217,7 +223,7 @@ export const extractArtistName = (artistString) => {
             name = sepMatch[1].trim();
         }
     }
-    
+
     return name;
 };
 
