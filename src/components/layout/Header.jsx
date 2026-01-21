@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCollection } from '../../context/CollectionContext';
 import { motion } from 'framer-motion';
+import { Logo } from '../common/Logo';
 
 export default function Header() {
     const location = useLocation();
@@ -14,8 +15,9 @@ export default function Header() {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-8 mix-blend-difference text-white pointer-events-none">
-            <Link to="/" className="text-xl font-serif font-bold tracking-widest pointer-events-auto hover:opacity-70 transition-opacity">
-                ArtVista
+            <Link to="/" className="flex items-center gap-3 text-xl font-serif font-bold tracking-widest pointer-events-auto hover:opacity-70 transition-opacity">
+                <Logo className="w-8 h-8" />
+                <span>ArtVista</span>
             </Link>
 
             {/* Desktop Navigation */}
