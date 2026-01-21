@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { artInstituteApi } from '../services/artInstituteApi';
 import { europeanaApi } from '../services/europeanaApi';
 import { useDebounce } from './useDebounce';
-import { matchesEra, matchesSearchQuery, sortBySearchRelevance } from '../utils/filterUtils';
+import { matchesEra, matchesSearchQuery, sortBySearchRelevance, matchesArtist, getEra, parseYear, ERA_CONFIG } from '../utils/filterUtils';
 
 export function useArtworks() {
     // Raw Data State
@@ -15,7 +15,7 @@ export function useArtworks() {
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');
-    const [filters, setFilters] = useState({ era: '' });
+    const [filters, setFilters] = useState({ era: '', artist: '' });
 
     // Track API Page separately
     const [apiPage, setApiPage] = useState(1);
@@ -33,7 +33,7 @@ export function useArtworks() {
         apiPageRef.current = 1;
         setHasMore(true);
         setError(null);
-        setFilters(f => ({ ...f, era: '' }));
+        setFilters(f => ({ ...f, era: '', artist: '' }));
         hasInitialized.current = false;
     }, [debouncedQuery]);
 
@@ -50,7 +50,7 @@ export function useArtworks() {
 
         try {
             const currentPage = apiPageRef.current;
-            
+
             // For diverse random feed when no search query, use varied terms
             let queryToUse = debouncedQuery;
             if (!debouncedQuery) {
@@ -100,7 +100,7 @@ export function useArtworks() {
                     });
                 });
             }
-            
+
             // ALWAYS increment page - we keep loading forever
             apiPageRef.current = currentPage + 1;
             setApiPage(currentPage + 1);
@@ -128,9 +128,12 @@ export function useArtworks() {
     const filteredArtworks = useMemo(() => {
         let filtered = allArtworks;
 
-        // Apply era filter first if selected
+        // Apply filters
         if (filters.era) {
             filtered = filtered.filter(artwork => matchesEra(artwork, filters.era));
+        }
+        if (filters.artist) {
+            filtered = filtered.filter(artwork => matchesArtist(artwork, filters.artist));
         }
 
         // Apply fuzzy search and get instant results sorted by relevance
@@ -143,9 +146,64 @@ export function useArtworks() {
         return filtered;
     }, [allArtworks, filters, debouncedQuery]);
 
+    // Calculate Dynamic Facets
+    const facets = useMemo(() => {
+        // Base: items matching search query
+        let searchMatched = allArtworks;
+        if (debouncedQuery.trim()) {
+            searchMatched = searchMatched
+                .filter(artwork => matchesSearchQuery(artwork, debouncedQuery));
+        }
+
+        // 1. Calculate Artist Facets (compatible with current Era selection)
+        // We want to show artists that exist within the currently selected Era (if any)
+        // Check if we should filter by Era for the artist list? 
+        // Typically, yes. "Show artists available in Renaissance"
+        let artistBase = searchMatched;
+        if (filters.era) {
+            artistBase = artistBase.filter(artwork => matchesEra(artwork, filters.era));
+        }
+
+        const artistCounts = {};
+        artistBase.forEach(art => {
+            if (art.artist) {
+                const name = art.artist; // We could normalize, but display needs original. 
+                // Group by normalized name to avoid dupes? 
+                // For now, simple grouping. The data might have variations.
+                artistCounts[name] = (artistCounts[name] || 0) + 1;
+            }
+        });
+
+        // Sort artists by count desc, then alpha
+        const artists = Object.entries(artistCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+        // 2. Calculate Era Facets (compatible with current Artist selection)
+        // We want to show Eras that exist for the currently selected Artist (if any)
+        let eraBase = searchMatched;
+        if (filters.artist) {
+            eraBase = eraBase.filter(artwork => matchesArtist(artwork, filters.artist));
+        }
+
+        const availableEras = new Set();
+        eraBase.forEach(art => {
+            const year = parseYear(art.year || art.date_display || art.date);
+            if (year !== null) {
+                const era = getEra(year);
+                if (era) availableEras.add(era);
+            }
+        });
+
+        // Return list of available Era keys
+        const eras = Object.keys(ERA_CONFIG).filter(key => availableEras.has(key));
+
+        return { artists, eras };
+    }, [allArtworks, debouncedQuery, filters.era, filters.artist]);
+
     const onClearAll = () => {
         setSearchQuery('');
-        setFilters({ era: '' });
+        setFilters({ era: '', artist: '' });
     };
 
     return {
@@ -158,6 +216,7 @@ export function useArtworks() {
         setSearchQuery,
         filters,
         setFilters,
-        onClearAll
+        onClearAll,
+        facets
     };
 }

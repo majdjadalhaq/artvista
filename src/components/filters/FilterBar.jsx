@@ -12,13 +12,21 @@ export default function FilterBar({
     setSearchQuery,
     filters,
     setFilters,
-    onClearAll
+    onClearAll,
+    facets
 }) {
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    // Filter Options with year ranges
+    // Dynamic Filter Options
     const filterOptions = {
-        era: Object.keys(ERA_CONFIG).map(key => ({ name: key, label: ERA_CONFIG[key].label }))
+        era: facets?.eras?.map(key => ({
+            name: key,
+            label: ERA_CONFIG[key].label
+        })) || [],
+        artist: facets?.artists?.map(a => ({
+            name: a.name,
+            label: `${a.name} (${a.count})`
+        })) || []
     };
 
     const toggleDropdown = (key) => {

@@ -40,7 +40,7 @@ describe('filterUtils', () => {
             expect(getEra(400)).toBe('Ancient');
             expect(getEra(1200)).toBe('Medieval');
             expect(getEra(1500)).toBe('Renaissance');
-            expect(getEra(1700)).toBe('Early Modern');
+            expect(getEra(1700)).toBe('Modern');
             expect(getEra(1850)).toBe('Modern');
             expect(getEra(1950)).toBe('Contemporary');
         });

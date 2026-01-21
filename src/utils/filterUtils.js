@@ -78,12 +78,12 @@ export const matchesEra = (artwork, selectedEra) => {
 
     // Use date_display or year, or infer from style if needed (but year is safer)
     const year = parseYear(artwork.year || artwork.date_display || artwork.date);
-    
+
     // Use the era range configuration for more flexible matching
     if (year && ERA_CONFIG[selectedEra]) {
         return isYearInEra(year, selectedEra);
     }
-    
+
     // Fallback to era matching
     const era = getEra(year);
     return era === selectedEra;
@@ -133,23 +133,23 @@ export const levenshteinDistance = (str1, str2) => {
 export const calculateMatchScore = (source, query) => {
     const normalizedSource = normalizeString(source);
     const normalizedQuery = normalizeString(query);
-    
+
     if (!normalizedSource || !normalizedQuery) return 0;
-    
+
     // Exact match
     if (normalizedSource === normalizedQuery) return 100;
-    
+
     // Starts with match
     if (normalizedSource.startsWith(normalizedQuery)) return 90;
-    
+
     // Contains match
     if (normalizedSource.includes(normalizedQuery)) return 80;
-    
+
     // Partial/fuzzy match using Levenshtein
     const distance = levenshteinDistance(normalizedSource, normalizedQuery);
     const maxLength = Math.max(normalizedSource.length, normalizedQuery.length);
     const similarity = Math.max(0, 100 - (distance / maxLength) * 100);
-    
+
     return similarity > 40 ? similarity : 0; // Only return matches with >40% similarity
 };
 
@@ -163,17 +163,28 @@ export const matchesSearchQuery = (artwork, query) => {
     const normalizedQuery = normalizeString(query).trim();
     if (!normalizedQuery) return true;
 
-    // Search fields with weights
-    const titleScore = calculateMatchScore(artwork.title || '', normalizedQuery) * 1.5; // Title is most relevant
-    const artistScore = calculateMatchScore(artwork.artist || '', normalizedQuery) * 1.3; // Artist second
-    const mediumScore = calculateMatchScore(artwork.medium || '', normalizedQuery);
-    const descriptionScore = calculateMatchScore(artwork.description || '', normalizedQuery) * 0.5;
+    const tokens = normalizedQuery.split(' ');
+    let totalScore = 0;
 
-    const maxScore = Math.max(titleScore, artistScore, mediumScore, descriptionScore);
-    
-    // Return true if any field has a score > 40 (good match)
-    artwork.searchScore = maxScore;
-    return maxScore > 40;
+    // AND logic: Every token must match at least one field
+    const allTokensMatch = tokens.every(token => {
+        // Search fields with weights
+        const titleScore = calculateMatchScore(artwork.title || '', token) * 1.5;
+        const artistScore = calculateMatchScore(artwork.artist || '', token) * 1.3;
+        const mediumScore = calculateMatchScore(artwork.medium || '', token);
+        const descriptionScore = calculateMatchScore(artwork.description || '', token) * 0.5;
+
+        const maxTokenScore = Math.max(titleScore, artistScore, mediumScore, descriptionScore);
+
+        if (maxTokenScore > 40) {
+            totalScore += maxTokenScore;
+            return true;
+        }
+        return false;
+    });
+
+    artwork.searchScore = totalScore;
+    return allTokensMatch;
 };
 
 /**
@@ -182,4 +193,4 @@ export const matchesSearchQuery = (artwork, query) => {
 export const sortBySearchRelevance = (artworks) => {
     return [...artworks].sort((a, b) => (b.searchScore || 0) - (a.searchScore || 0));
 };
-};
+

@@ -19,7 +19,8 @@ export default function Explore() {
         setSearchQuery,
         filters,
         setFilters,
-        onClearAll
+        onClearAll,
+        facets
     } = useArtworks();
 
     // Attach Infinite Scroll to the 'loadMore' function
@@ -33,6 +34,7 @@ export default function Explore() {
                 filters={filters}
                 setFilters={setFilters}
                 onClearAll={onClearAll}
+                facets={facets}
             />
 
             {/* Title Overlay */}
