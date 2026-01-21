@@ -95,12 +95,12 @@ export default function DetailView() {
     const isKnownArtist = selectedArtwork.artist && selectedArtwork.artist.toLowerCase() !== 'unknown';
 
     return (
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.15 }}
                 className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-charcoal-ink overflow-hidden"
             >
                 {/* Left Side - Artwork Image */}
@@ -122,7 +122,8 @@ export default function DetailView() {
                 <motion.div
                     initial={{ x: '100%' }}
                     animate={{ x: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    exit={{ x: '100%' }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                     className="w-full h-[55vh] md:h-full md:w-2/5 lg:w-1/3 bg-gradient-to-b from-charcoal-ink via-charcoal-ink to-black/80 border-l border-white/5 flex flex-col relative shadow-2xl overflow-hidden"
                 >
                     {/* Close Button - Desktop */}
@@ -135,9 +136,9 @@ export default function DetailView() {
                     {/* Scrollable Content */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-8 py-2 md:py-4">
                         <motion.div 
-                            initial={{ opacity: 0, y: 20 }} 
+                            initial={{ opacity: 0, y: 10 }} 
                             animate={{ opacity: 1, y: 0 }} 
-                            transition={{ delay: 0.2 }}
+                            transition={{ delay: 0.1, duration: 0.15 }}
                             className="space-y-6"
                         >
                             {/* Badge */}
@@ -159,7 +160,7 @@ export default function DetailView() {
                                 <motion.div 
                                     initial={{ opacity: 0 }} 
                                     animate={{ opacity: 1 }} 
-                                    transition={{ delay: 0.3 }}
+                                    transition={{ delay: 0.12, duration: 0.15 }}
                                     className="pt-4 border-t border-white/10"
                                 >
                                     <div className="flex items-start gap-4">
@@ -188,7 +189,7 @@ export default function DetailView() {
                             <motion.div 
                                 initial={{ opacity: 0 }} 
                                 animate={{ opacity: 1 }} 
-                                transition={{ delay: 0.35 }}
+                                transition={{ delay: 0.14, duration: 0.15 }}
                                 className="grid grid-cols-2 gap-4 py-4 border-y border-white/10"
                             >
                                 {selectedArtwork.year && (
@@ -220,7 +221,7 @@ export default function DetailView() {
                                 <motion.div 
                                     initial={{ opacity: 0 }} 
                                     animate={{ opacity: 1 }} 
-                                    transition={{ delay: 0.4 }}
+                                    transition={{ delay: 0.16, duration: 0.15 }}
                                 >
                                     <p className="text-[10px] text-white/40 uppercase tracking-widest mb-3">Description</p>
                                     <p className="text-soft-clay/90 leading-relaxed font-light text-sm line-clamp-4">
@@ -233,9 +234,10 @@ export default function DetailView() {
 
                     {/* Action Button */}
                     <motion.div 
-                        initial={{ opacity: 0, y: 20 }} 
+                        initial={{ opacity: 0, y: 10 }} 
                         animate={{ opacity: 1, y: 0 }} 
-                        transition={{ delay: 0.5 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ delay: 0.18, duration: 0.15 }}
                         className="p-6 md:p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0"
                     >
                         <button

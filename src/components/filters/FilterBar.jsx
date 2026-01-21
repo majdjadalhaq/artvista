@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Filter, ChevronDown } from 'lucide-react';
-import { ERA_CONFIG } from '../../utils/filterUtils';
+import { ERA_CONFIG, extractArtistName } from '../../utils/filterUtils';
 
 /**
  * FilterBar Component
@@ -25,7 +25,7 @@ export default function FilterBar({
         })) || [],
         artist: facets?.artists?.map(a => ({
             name: a.name,
-            label: `${a.name} (${a.count})`
+            label: extractArtistName(a.name)
         })) || []
     };
 

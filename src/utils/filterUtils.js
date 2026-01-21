@@ -194,3 +194,30 @@ export const sortBySearchRelevance = (artworks) => {
     return [...artworks].sort((a, b) => (b.searchScore || 0) - (a.searchScore || 0));
 };
 
+/**
+ * Extract just the artist name from the full artist string
+ * Examples:
+ * "Claude Monet (French, 1840–1926)" -> "Claude Monet"
+ * "Joan Miró Spanish, 1893–1983" -> "Joan Miró"
+ * "VASILY KANDINSKY BORN MOSCOW..." -> "VASILY KANDINSKY"
+ * "Unknown Artist" -> "Unknown Artist"
+ */
+export const extractArtistName = (artistString) => {
+    if (!artistString) return '';
+    
+    // Split by opening parenthesis and take first part
+    const parts = artistString.split('(');
+    let name = parts[0].trim();
+    
+    // If no parenthesis, split by common separators like "AMERICAN,", "SPANISH,"
+    if (parts.length === 1) {
+        // Try to split on common nationality/birth patterns
+        const sepMatch = name.match(/^([^,]+(?:\s+[^,]+)?)\s+(?:AMERICAN|SPANISH|FRENCH|DUTCH|SWISS|GERMAN|ITALIAN|BELGIAN|SWEDISH|NORWEGIAN|RUSSIAN|PORTUGUESE|BRITISH|CANADIAN|AUSTRALIAN|BORN|DIED)/i);
+        if (sepMatch) {
+            name = sepMatch[1].trim();
+        }
+    }
+    
+    return name;
+};
+
