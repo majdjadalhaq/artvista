@@ -1,9 +1,10 @@
-import { useCallback, useMemo, forwardRef } from 'react';
-import { VariableSizeGrid as Grid } from 'react-window';
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import ArtworkCard from '../artwork/ArtworkCard';
 import { useUI } from '../../context/UIContext';
 import { useWindowSize } from '../../hooks/useWindowSize';
 
+// Creative Masonry MosaicGrid
 export default function MosaicGrid({ artworks, hasMore, onLoadMore, loading }) {
     const { openArtwork } = useUI();
     const { width } = useWindowSize(); // height unused here as we use window.innerHeight
@@ -16,112 +17,85 @@ export default function MosaicGrid({ artworks, hasMore, onLoadMore, loading }) {
 
     if (!items || items.length === 0) return null;
 
-    // Responsive columns and sizes
-    const padding = width < 1024 ? (width < 768 ? 16 : 32) : 64; // px
-    const gap = width < 1024 ? 16 : 24; // px
+
+    // Masonry logic: assign items to columns for a natural, staggered look
+    const padding = width < 1024 ? (width < 768 ? 12 : 24) : 48;
+    const gap = width < 1024 ? 14 : 20;
     const columnCount = width < 768 ? 2 : (width < 1024 ? 3 : 4);
     const contentWidth = Math.min(width, 2000) - padding * 2;
     const columnWidth = Math.floor((contentWidth - gap * (columnCount - 1)) / columnCount);
-    // const baseRowHeight = Math.floor(columnWidth * 4 / 3); // maintain 3:4 aspect
-    const baseRowHeight = Math.floor(columnWidth * 1.5); // Taller aspect for elegance
+    const topOffset = width < 768 ? 120 : 160;
+    const bottomOffset = 100;
 
-    const rowCount = Math.ceil(items.length / columnCount);
+    // Assign items to columns for masonry
+    const columns = useMemo(() => {
+        const cols = Array.from({ length: columnCount }, () => []);
+        items.forEach((item, i) => {
+            // Assign to the shortest column
+            const colHeights = cols.map(col => col.reduce((sum, it) => sum + (it.height || 1), 0));
+            const minCol = colHeights.indexOf(Math.min(...colHeights));
+            cols[minCol].push(item);
+        });
+        return cols;
+    }, [items, columnCount]);
 
-    // Calculate top offset for header (replaces the padding we removed from Explore.jsx)
-    // pt-40 (160px) for mobile, pt-48 (192px) for desktop
-    const topOffset = width < 768 ? 160 : 192;
-    const bottomOffset = 100; // Space for "Loading more" indicator
+    // Estimate card heights for staggered effect (simulate variable height)
+    const getCardHeight = (item, i) => {
+        // Use a pseudo-random but deterministic height for visual variety
+        const base = columnWidth * 1.3;
+        const mod = 0.9 + ((i * 31) % 10) / 20;
+        return Math.floor(base * mod);
+    };
 
-    // Complex splitting illusion: vary row heights in a repeating pattern
-    // Rhythmic pattern: 3-step cycle for a cleaner, gallery-like feel
-    const getRowHeight = useCallback((rowIndex) => {
-        const pattern = rowIndex % 3;
-        if (pattern === 0) return Math.floor(baseRowHeight * 1.3); // Tall hero
-        if (pattern === 1) return Math.floor(baseRowHeight * 0.9); // Compact
-        return Math.floor(baseRowHeight * 1.4); // Feature
-    }, [baseRowHeight]);
-
-    const itemData = useMemo(() => ({
-        items,
-        columnCount,
-        gap,
-        columnWidth,
-        getRowHeight,
-        openArtwork,
-        topOffset
-    }), [items, columnCount, gap, columnWidth, getRowHeight, openArtwork, topOffset]);
-
-    const onItemsRendered = useCallback(({ visibleRowStopIndex }) => {
-        const lastVisibleIndex = (visibleRowStopIndex + 1) * columnCount;
-        if (hasMore && !loading && lastVisibleIndex >= items.length - columnCount * 2) {
+    // For infinite scroll
+    const lastRowIndex = Math.max(...columns.map(col => col.length));
+    const onScroll = (e) => {
+        const { scrollTop, clientHeight, scrollHeight } = e.target;
+        if (hasMore && !loading && scrollTop + clientHeight > scrollHeight - 600) {
             onLoadMore?.();
         }
-    }, [hasMore, loading, items.length, columnCount, onLoadMore]);
+    };
 
-    // Custom inner element to accommodate the top offset in scroll height
-    const InnerGridElement = useMemo(() => forwardRef(({ style, ...rest }, ref) => (
-        <div
-            ref={ref}
-            style={{
-                ...style,
-                height: `${parseFloat(style.height) + topOffset + bottomOffset}px`
-            }}
-            {...rest}
-        />
-    )), [topOffset, bottomOffset]);
+
 
     return (
-        <div className="w-full h-full"> {/* Full height container */}
-            <div className="w-full max-w-[2000px] mx-auto h-full">
-                <Grid
-                    columnCount={columnCount}
-                    columnWidth={() => columnWidth}
-                    height={window.innerHeight} // Full window scroll
-                    rowCount={rowCount}
-                    rowHeight={getRowHeight}
-                    width={contentWidth}
-                    style={{ overflowX: 'hidden' }}
-                    containerStyle={{ overflowX: 'hidden' }}
-                    onItemsRendered={onItemsRendered}
-                    overscanRowCount={3}
-                    itemData={itemData}
-                    innerElementType={InnerGridElement}
-                    className="custom-scrollbar"
-                >
-                    {Cell}
-                </Grid>
+        <div
+            className="w-full max-w-[2000px] mx-auto min-h-[60vh] px-2 md:px-8 lg:px-16"
+            style={{ paddingTop: topOffset, paddingBottom: bottomOffset }}
+            onScroll={onScroll}
+        >
+            <div
+                className="flex w-full gap-x-4 md:gap-x-8 lg:gap-x-12"
+                style={{ alignItems: 'flex-start' }}
+            >
+                {columns.map((col, colIdx) => (
+                    <div
+                        key={colIdx}
+                        className="flex flex-col gap-y-6 md:gap-y-10 lg:gap-y-14"
+                        style={{ width: columnWidth }}
+                    >
+                        {col.map((item, i) => (
+                            <motion.div
+                                key={item.id || i}
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                transition={{ duration: 0.5, delay: (i + colIdx) * 0.06 }}
+                                style={{ height: getCardHeight(item, i), width: '100%' }}
+                            >
+                                <ArtworkCard
+                                    artwork={item}
+                                    index={i + colIdx * 1000}
+                                    gridMeta={{ index: i, columnCount, total: items.length }}
+                                    onClick={() => openArtwork(item)}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
-const Cell = ({ columnIndex, rowIndex, style, data }) => {
-    const { items, columnCount, gap, columnWidth, getRowHeight, openArtwork, topOffset } = data;
-    const index = rowIndex * columnCount + columnIndex;
-    if (index >= items.length) return null;
-    const art = items[index];
-
-    // Adjust style for gap AND top offset
-    const adjustedStyle = {
-        ...style,
-        left: (style.left ?? 0) + (columnIndex ? gap * columnIndex : 0),
-        top: (style.top ?? 0) + (rowIndex ? gap * rowIndex : 0) + topOffset,
-        width: columnWidth,
-        height: getRowHeight(rowIndex),
-        padding: 0
-    };
-
-    return (
-        <div
-            data-grid-index={index}
-            style={adjustedStyle}
-        >
-            <ArtworkCard
-                artwork={art}
-                index={index}
-                gridMeta={{ index, columnCount, total: items.length }}
-                onClick={() => openArtwork(art)}
-            />
-        </div>
-    );
-};
+// No Cell needed for new layout

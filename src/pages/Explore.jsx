@@ -8,6 +8,7 @@ import { useArtworks } from '../hooks/useArtworks';
 import { useUI } from '../context/UIContext';
 
 export default function Explore() {
+
     const {
         artworks,
         loading,
@@ -23,7 +24,7 @@ export default function Explore() {
     } = useArtworks();
 
     return (
-        <div className="h-screen bg-charcoal-ink text-dust-sand relative overflow-hidden">
+        <div className="min-h-screen bg-charcoal-ink text-dust-sand relative overflow-x-hidden">
             <FilterBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -49,7 +50,7 @@ export default function Explore() {
             </motion.div>
 
             {/* Main Grid Area */}
-            <div className="h-screen w-full relative overflow-hidden">
+            <div id="explore-grid" className="min-h-screen w-full relative overflow-visible pt-32 pb-24">
                 {artworks.length === 0 && loading ? (
                     <LoadingFallback />
                 ) : (
@@ -60,7 +61,6 @@ export default function Explore() {
                             onLoadMore={loadMore}
                             loading={loading}
                         />
-
                         {/* Bottom Ribbon Loader */}
                         {loading && (
                             <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40">
@@ -71,7 +71,6 @@ export default function Explore() {
                         )}
                     </>
                 )}
-
                 {/* Empty State */}
                 {!loading && artworks.length === 0 && !error && (
                     <div className="flex flex-col items-center justify-center min-h-[50vh] text-soft-clay">

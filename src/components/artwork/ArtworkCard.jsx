@@ -1,34 +1,19 @@
 import { useState, useCallback, memo, forwardRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
-import { useUI } from '../../context/UIContext';
 import { useCollection } from '../../context/CollectionContext';
 import { Link } from 'react-router-dom';
 
-const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, className = '', onClick, gridMeta }, ref) {
+const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, className = '', onClick }, ref) {
     const { isSaved, addToCollection, removeFromCollection } = useCollection();
     const saved = isSaved(artwork.id);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
 
-    // Helper to get best image source (prefer smaller thumbnails for grid performance)
-    const getArtworkImage = useCallback(() => {
-        // Prefer explicit small thumbnail fields
-        const primary = artwork.image_small || artwork.thumbnail || artwork.image_url || artwork.imageUrl || artwork.image || artwork.image_large;
-        if (!primary) return '/placeholder-art.jpg';
-        // If IIIF from AIC, downscale to ~300px for grid
-        if (typeof primary === 'string' && primary.includes('/iiif/2/') && primary.includes('/full/')) {
-            try {
-                const parts = primary.split('/iiif/2/');
-                const idAndRest = parts[1];
-                const id = idAndRest.split('/')[0];
-                return `https://www.artic.edu/iiif/2/${id}/full/300,/0/default.jpg`;
-            } catch {
-                return primary;
-            }
-        }
-        return primary;
-    }, [artwork]);
+    // Helper to get best image source
+    const getArtworkImage = useCallback(() => (
+        artwork.image_large || artwork.image || artwork.image_url || artwork.imageUrl || '/placeholder-art.jpg'
+    ), [artwork]);
 
     const toggleSave = useCallback((e) => {
         e.preventDefault();
@@ -39,14 +24,23 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
     const handleImageLoad = useCallback(() => setImageLoaded(true), []);
     const handleImageError = useCallback(() => setImageError(true), []);
 
-    const prefersReducedMotion = useReducedMotion();
-
-    // Lightweight motion variants (transform-only, no heavy shadows)
+    // Framer Motion Variants
     const cardVariants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: (i) => ({
+            opacity: 1,
+            y: 0,
+            transition: {
+                delay: i * 0.03,
+                duration: 0.32,
+                ease: [0.25, 0.4, 0.25, 1],
+            }
+        }),
         hover: {
-            scale: 1.03,
+            scale: 1.05,
             zIndex: 10,
-            transition: { duration: 0.18, ease: 'easeOut' }
+            boxShadow: '0 8px 32px -8px var(--accent-primary), 0 2px 8px -2px var(--accent-primary)',
+            transition: { duration: 0.22, ease: 'easeOut' }
         },
         tap: { scale: 0.98 }
     };
@@ -60,42 +54,18 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
         }
     };
 
-    const onKeyDown = useCallback((e) => {
-        if (!gridMeta) return;
-        const { index: i, columnCount, total } = gridMeta;
-        let target = null;
-        switch (e.key) {
-            case 'ArrowRight':
-                target = Math.min(i + 1, total - 1); break;
-            case 'ArrowLeft':
-                target = Math.max(i - 1, 0); break;
-            case 'ArrowDown':
-                target = Math.min(i + columnCount, total - 1); break;
-            case 'ArrowUp':
-                target = Math.max(i - columnCount, 0); break;
-            default:
-                return;
-        }
-        e.preventDefault();
-        const el = document.querySelector(`[data-grid-index="${target}"]`);
-        if (el) {
-            const focusable = el.querySelector('[role="article"]');
-            (focusable || el).focus({ preventScroll: false });
-        }
-    }, [gridMeta]);
-
     return (
         <motion.div
             ref={ref}
             custom={index}
             variants={cardVariants}
-            initial={false}
-            whileHover={!prefersReducedMotion ? 'hover' : undefined}
-            whileFocus={!prefersReducedMotion ? 'hover' : undefined}
-            whileTap={!prefersReducedMotion ? 'tap' : undefined}
-            className={`group relative w-full aspect-[3/4] bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden cursor-pointer transition-transform ${className}`}
-            style={{ willChange: 'transform' }}
-            onKeyDown={onKeyDown}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            whileHover="hover"
+            whileFocus="hover"
+            whileTap="tap"
+            className={`group relative w-full aspect-[3/4] bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden cursor-pointer shadow-md transition-all will-change-transform ${className}`}
             tabIndex={0}
             role="article"
             aria-label={`View artwork: ${artwork.title} by ${artwork.artist || 'Unknown Artist'}`}
@@ -127,23 +97,6 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                             alt={artwork.title || 'Artwork'}
                             className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                             loading="lazy"
-                            decoding="async"
-                            fetchpriority="low"
-                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            srcSet={(() => {
-                                const src = getArtworkImage();
-                                if (typeof src === 'string' && src.includes('/iiif/2/') && src.includes('/full/')) {
-                                    try {
-                                        const parts = src.split('/iiif/2/');
-                                        const idAndRest = parts[1];
-                                        const id = idAndRest.split('/')[0];
-                                        const mk = (w) => `https://www.artic.edu/iiif/2/${id}/full/${w},/0/default.jpg ${w}w`;
-                                        return [mk(200), mk(300), mk(400), mk(600), mk(800)].join(', ');
-                                    } catch { /* noop */ }
-                                }
-                                // Fallback: no srcSet
-                                return undefined;
-                            })()}
                             onLoad={handleImageLoad}
                             onError={handleImageError}
                             draggable={false}
@@ -160,7 +113,7 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
 
                 {/* Metadata Overlay - Reveal on Hover/Focus */}
                 <motion.div
-                    className="absolute inset-x-0 bottom-0 p-4 bg-[var(--bg-secondary)]/70 border-t border-[var(--border)] transition-opacity"
+                    className="absolute inset-x-0 bottom-0 p-4 bg-[var(--bg-secondary)]/80 backdrop-blur-md border-t border-[var(--border)] transition-all"
                     variants={overlayVariants}
                     initial="initial"
                     whileHover="hover"
