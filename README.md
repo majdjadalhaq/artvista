@@ -85,6 +85,3 @@ To demonstrate the application structure, here are the main views:
     - [Art Institute of Chicago API](https://api.artic.edu/docs/)
     - [Europeana REST API](https://pro.europeana.eu/page/intro)
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
