@@ -1,101 +1,64 @@
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useRef, useEffect } from 'react';
 import ArtworkCard from '../artwork/ArtworkCard';
 import { useUI } from '../../context/UIContext';
-import { useWindowSize } from '../../hooks/useWindowSize';
+import '../../styles/grid.css';
 
 // Creative Masonry MosaicGrid
 export default function MosaicGrid({ artworks, hasMore, onLoadMore, loading }) {
     const { openArtwork } = useUI();
-    const { width } = useWindowSize(); // height unused here as we use window.innerHeight
+    const observerTarget = useRef(null);
 
-    // Filter out artworks with "Unknown" artists - only show art pieces
-    const items = useMemo(
-        () => artworks.filter(art => art.artist && art.artist.toLowerCase() !== 'unknown'),
-        [artworks]
-    );
+    // Infinite scroll observer
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loading) {
+                    onLoadMore?.();
+                }
+            },
+            { threshold: 0.1, rootMargin: '100px' }
+        );
 
-    if (!items || items.length === 0) return null;
-
-
-    // Masonry logic: assign items to columns for a natural, staggered look
-    const padding = width < 1024 ? (width < 768 ? 12 : 24) : 48;
-    const gap = width < 1024 ? 14 : 20;
-    const columnCount = width < 768 ? 2 : (width < 1024 ? 3 : 4);
-    const contentWidth = Math.min(width, 2000) - padding * 2;
-    const columnWidth = Math.floor((contentWidth - gap * (columnCount - 1)) / columnCount);
-    const topOffset = width < 768 ? 120 : 160;
-    const bottomOffset = 100;
-
-    // Assign items to columns for masonry
-    const columns = useMemo(() => {
-        const cols = Array.from({ length: columnCount }, () => []);
-        items.forEach((item, i) => {
-            // Assign to the shortest column
-            const colHeights = cols.map(col => col.reduce((sum, it) => sum + (it.height || 1), 0));
-            const minCol = colHeights.indexOf(Math.min(...colHeights));
-            cols[minCol].push(item);
-        });
-        return cols;
-    }, [items, columnCount]);
-
-    // Estimate card heights for staggered effect (simulate variable height)
-    const getCardHeight = (item, i) => {
-        // Use a pseudo-random but deterministic height for visual variety
-        const base = columnWidth * 1.3;
-        const mod = 0.9 + ((i * 31) % 10) / 20;
-        return Math.floor(base * mod);
-    };
-
-    // For infinite scroll
-    const lastRowIndex = Math.max(...columns.map(col => col.length));
-    const onScroll = (e) => {
-        const { scrollTop, clientHeight, scrollHeight } = e.target;
-        if (hasMore && !loading && scrollTop + clientHeight > scrollHeight - 600) {
-            onLoadMore?.();
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
         }
-    };
 
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [hasMore, loading, onLoadMore]);
 
+    if (!artworks || artworks.length === 0) return null;
+
+    // Filter out unknown artists if needed, though arguably we should show all art
+    // const items = artworks.filter(art => art.artist && art.artist.toLowerCase() !== 'unknown');
+    // For now, let's show everything to fill the grid, the card handles "Unknown" gracefully.
+    const items = artworks;
 
     return (
-        <div
-            className="w-full max-w-[2000px] mx-auto min-h-[60vh] px-2 md:px-8 lg:px-16"
-            style={{ paddingTop: topOffset, paddingBottom: bottomOffset }}
-            onScroll={onScroll}
-        >
-            <div
-                className="flex w-full gap-x-4 md:gap-x-8 lg:gap-x-12"
-                style={{ alignItems: 'flex-start' }}
-            >
-                {columns.map((col, colIdx) => (
+        <div className="w-full max-w-[2000px] mx-auto min-h-[60vh] px-4 md:px-8 lg:px-12 pt-40 pb-24">
+
+            {/* CSS Masonry Grid */}
+            <div className="masonry-grid">
+                {items.map((artwork, i) => (
                     <div
-                        key={colIdx}
-                        className="flex flex-col gap-y-6 md:gap-y-10 lg:gap-y-14"
-                        style={{ width: columnWidth }}
+                        key={artwork.id || i}
+                        className="masonry-item animate-fade-in-up"
+                        style={{ animationDelay: `${(i % 12) * 0.05}s` }}
                     >
-                        {col.map((item, i) => (
-                            <motion.div
-                                key={item.id || i}
-                                initial={{ opacity: 0, y: 40 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.2 }}
-                                transition={{ duration: 0.5, delay: (i + colIdx) * 0.06 }}
-                                style={{ height: getCardHeight(item, i), width: '100%' }}
-                            >
-                                <ArtworkCard
-                                    artwork={item}
-                                    index={i + colIdx * 1000}
-                                    gridMeta={{ index: i, columnCount, total: items.length }}
-                                    onClick={() => openArtwork(item)}
-                                />
-                            </motion.div>
-                        ))}
+                        <ArtworkCard
+                            artwork={artwork}
+                            index={i}
+                            onClick={() => openArtwork(artwork)}
+                        />
                     </div>
                 ))}
             </div>
+
+            {/* Scroll Observer Target */}
+            <div ref={observerTarget} className="h-20 w-full" aria-hidden="true" />
         </div>
     );
 }
-
-// No Cell needed for new layout

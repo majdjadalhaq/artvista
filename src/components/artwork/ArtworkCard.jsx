@@ -1,6 +1,6 @@
 import { useState, useCallback, memo, forwardRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Heart, Maximize2 } from 'lucide-react';
 import { useCollection } from '../../context/CollectionContext';
 import { Link } from 'react-router-dom';
 
@@ -21,138 +21,111 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
         saved ? removeFromCollection(artwork.id) : addToCollection(artwork);
     }, [saved, artwork, addToCollection, removeFromCollection]);
 
-    const handleImageLoad = useCallback(() => setImageLoaded(true), []);
-    const handleImageError = useCallback(() => setImageError(true), []);
+    // Card Parent Variants
+    const mainVariants = {
+        hidden: { opacity: 0, y: 20 },
+        idle: { opacity: 1, y: 0 },
+        hover: { transition: { duration: 0.2 } }
+    };
 
-    // Framer Motion Variants
-    const cardVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: (i) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                delay: i * 0.03,
-                duration: 0.32,
-                ease: [0.25, 0.4, 0.25, 1],
-            }
-        }),
-        hover: {
-            scale: 1.05,
-            zIndex: 10,
-            boxShadow: '0 8px 32px -8px var(--accent-primary), 0 2px 8px -2px var(--accent-primary)',
-            transition: { duration: 0.22, ease: 'easeOut' }
-        },
-        tap: { scale: 0.98 }
+    const imageVariants = {
+        idle: { scale: 1, filter: 'brightness(1)' },
+        hover: { scale: 1.02, filter: 'brightness(1.05)' }
     };
 
     const overlayVariants = {
-        initial: { opacity: 0, y: 20 },
+        hidden: { opacity: 0, y: 20 },
+        idle: { opacity: 0, y: 20 },
         hover: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.22, ease: 'easeOut', delay: 0.08 }
+            transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] }
+        }
+    };
+
+    const actionsVariants = {
+        hidden: { opacity: 0, x: 20 },
+        idle: { opacity: 0, x: 20 },
+        hover: {
+            opacity: 1,
+            x: 0,
+            transition: { duration: 0.3, delay: 0.1, ease: 'easeOut' }
         }
     };
 
     return (
         <motion.div
             ref={ref}
-            custom={index}
-            variants={cardVariants}
+            variants={mainVariants}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            animate="idle"
             whileHover="hover"
-            whileFocus="hover"
-            whileTap="tap"
-            className={`group relative w-full aspect-[3/4] bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden cursor-pointer shadow-md transition-all will-change-transform ${className}`}
-            tabIndex={0}
-            role="article"
-            aria-label={`View artwork: ${artwork.title} by ${artwork.artist || 'Unknown Artist'}`}
+            className={`group relative w-full mb-6 break-inside-avoid rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-shadow duration-500 bg-charcoal-surface ${className}`}
         >
             <Link
                 to={`/artwork/${artwork.id}`}
-                onClick={(e) => {
-                    if (onClick) {
-                        e.preventDefault();
-                        onClick(e);
-                    }
-                }}
-                className="block w-full h-full relative z-0"
+                onClick={(e) => onClick && (e.preventDefault(), onClick(e))}
+                className="block w-full h-full relative"
             >
-                {/* Image Container */}
-                <div className="w-full h-full relative overflow-hidden bg-[var(--bg-primary)]">
-                    {/* Noise overlay for archival texture */}
-                    <div className="absolute inset-0 pointer-events-none z-10 opacity-10 noise-bg" />
+                {/* Image Container - No fixed aspect ratio, adapts to image */}
+                <div className="relative w-full overflow-hidden bg-gray-900">
 
-                    {/* Skeleton / Loading State */}
+                    {/* Placeholder / Loading Skeleton */}
                     {!imageLoaded && !imageError && (
-                        <div className="absolute inset-0 animate-pulse bg-gray-800" />
+                        <div className="absolute inset-0 z-0 bg-gray-800 animate-pulse min-h-[200px]" />
                     )}
 
-                    {/* Artwork Image or Placeholder */}
-                    {!imageError ? (
-                        <motion.img
-                            src={getArtworkImage()}
-                            alt={artwork.title || 'Artwork'}
-                            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                            loading="lazy"
-                            onLoad={handleImageLoad}
-                            onError={handleImageError}
-                            draggable={false}
-                        />
-                    ) : (
-                        <div className="flex items-center justify-center w-full h-full bg-[var(--bg-secondary)]">
-                            <span className="text-[var(--accent-warm)] font-serif text-lg opacity-70">No Image</span>
+                    <motion.img
+                        variants={imageVariants}
+                        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        src={getArtworkImage()}
+                        alt={artwork.title || 'Artwork'}
+                        className={`w-full h-auto object-cover block align-bottom transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => setImageError(true)}
+                        loading="lazy"
+                    />
+
+                    {/* Gradient Overlay for Text Readability - Only on Hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* Glassmorphic Actions (Top Right) */}
+                    <motion.div
+                        variants={actionsVariants}
+                        className="absolute top-4 right-4 flex flex-col gap-2 z-20 pointer-events-none group-hover:pointer-events-auto"
+                    >
+                        <button
+                            onClick={toggleSave}
+                            className={`p-3 rounded-full backdrop-blur-md border border-white/10 shadow-lg transition-transform active:scale-95 flex items-center justify-center
+                                ${saved ? 'bg-white/90 text-red-500' : 'bg-black/40 text-white hover:bg-white hover:text-red-500'}`}
+                            aria-label="Save artwork"
+                        >
+                            <Heart size={18} className={saved ? 'fill-current' : ''} />
+                        </button>
+                        <div className="p-3 rounded-full bg-black/40 text-white backdrop-blur-md border border-white/10 hover:bg-white hover:text-black transition-colors">
+                            <Maximize2 size={18} />
                         </div>
-                    )}
+                    </motion.div>
 
-                    {/* Subtle gradient for text contrast */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-secondary)]/80 via-transparent to-transparent opacity-60 pointer-events-none" />
+                    {/* Metadata Overlay (Bottom) */}
+                    <motion.div
+                        variants={overlayVariants}
+                        className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform-gpu"
+                    >
+                        <h3 className="font-serif text-xl md:text-2xl font-medium tracking-tight leading-none mb-2 line-clamp-2 drop-shadow-md">
+                            {artwork.title}
+                        </h3>
+                        <div className="flex items-center justify-between text-white/80 text-sm font-sans tracking-wide">
+                            <span className="truncate pr-4 border-r border-white/20 mr-4">
+                                {artwork.artist || 'Unknown Artist'}
+                            </span>
+                            <span className="whitespace-nowrap tabular-nums opacity-70">
+                                {artwork.year || ''}
+                            </span>
+                        </div>
+                    </motion.div>
                 </div>
-
-                {/* Metadata Overlay - Reveal on Hover/Focus */}
-                <motion.div
-                    className="absolute inset-x-0 bottom-0 p-4 bg-[var(--bg-secondary)]/80 backdrop-blur-md border-t border-[var(--border)] transition-all"
-                    variants={overlayVariants}
-                    initial="initial"
-                    whileHover="hover"
-                    whileFocus="hover"
-                    aria-hidden="true"
-                >
-                    <h3 className="font-serif text-lg font-bold text-[var(--accent-warm)] leading-tight mb-1 truncate">
-                        {artwork.title}
-                    </h3>
-                    <p className="text-sm font-sans text-[var(--text-secondary)] mb-1 truncate">
-                        {artwork.artist || 'Unknown Artist'}
-                    </p>
-                    <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-[var(--text-primary)] opacity-70">
-                            {artwork.year || 'N/A'}
-                        </span>
-                        <span className="text-[10px] uppercase tracking-wider text-[var(--accent-primary)] opacity-80">
-                            {artwork.source}
-                        </span>
-                    </div>
-                </motion.div>
             </Link>
-
-            {/* Favorite Button (outside Link for accessibility) */}
-            <motion.button
-                onClick={toggleSave}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                whileTap={{ scale: 0.9 }}
-                className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm z-20 transition-opacity
-                    ${saved
-                        ? 'bg-[var(--bg-primary)]/40 text-red-500 opacity-100'
-                        : 'bg-[var(--bg-primary)]/20 text-[var(--text-primary)] opacity-0 group-hover:opacity-100 group-focus:opacity-100'
-                    }`}
-                aria-label={saved ? "Remove from favorites" : "Add to favorites"}
-            >
-                <Heart size={18} className={saved ? 'fill-red-500' : ''} />
-            </motion.button>
         </motion.div>
     );
 }));

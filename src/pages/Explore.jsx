@@ -44,13 +44,10 @@ export default function Explore() {
                 <h1 className="text-4xl md:text-6xl font-serif font-bold tracking-tight text-white">
                     Gallery
                 </h1>
-                <p className="text-white/60 mt-2 text-xs md:text-sm tracking-wide font-sans">
-                    {artworks.length} masterpieces
-                </p>
             </motion.div>
 
             {/* Main Grid Area */}
-            <div id="explore-grid" className="min-h-screen w-full relative overflow-visible pt-32 pb-24">
+            <div id="explore-grid" className="min-h-screen w-full relative overflow-visible pb-24">
                 {artworks.length === 0 && loading ? (
                     <LoadingFallback />
                 ) : (

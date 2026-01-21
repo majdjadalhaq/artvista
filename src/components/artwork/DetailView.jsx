@@ -1,6 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef, useState, useMemo, useEffect, Suspense } from 'react';
-import { TextureLoader } from 'three';
 import { useUI } from '../../context/UIContext';
 import { useCollection } from '../../context/CollectionContext';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
@@ -8,19 +7,15 @@ import { X, Heart, MapPin, Palette } from 'lucide-react';
 import { vertexShader, fragmentShader } from '../animations/FluidShader';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useTexture } from '@react-three/drei';
+
 function InteractiveCard({ imageUrl, isMobile }) {
     const mesh = useRef();
-    const [texture, setTexture] = useState(null);
-    const [aspect, setAspect] = useState(1);
+    const texture = useTexture(imageUrl || '/placeholder-art.jpg');
+    const aspect = texture.image ? (texture.image.width / texture.image.height) : 1;
     const mouse = useRef({ x: 0.5, y: 0.5 });
 
     useEffect(() => {
-        const loader = new TextureLoader();
-        loader.load(imageUrl || '/placeholder-art.jpg', (tex) => {
-            setAspect(tex.image.width / tex.image.height);
-            setTexture(tex);
-        });
-
         const handleMove = (e) => {
             mouse.current = {
                 x: e.clientX / window.innerWidth,
@@ -29,7 +24,7 @@ function InteractiveCard({ imageUrl, isMobile }) {
         };
         window.addEventListener('mousemove', handleMove);
         return () => window.removeEventListener('mousemove', handleMove);
-    }, [imageUrl]);
+    }, []);
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0 },
@@ -40,7 +35,7 @@ function InteractiveCard({ imageUrl, isMobile }) {
     }), []);
 
     useFrame((state) => {
-        if (mesh.current && texture) {
+        if (mesh.current) {
             mesh.current.material.uniforms.uTexture.value = texture;
             mesh.current.material.uniforms.uTime.value = state.clock.getElapsedTime();
             mesh.current.material.uniforms.uOpacity.value += (1 - mesh.current.material.uniforms.uOpacity.value) * 0.08;
@@ -57,14 +52,12 @@ function InteractiveCard({ imageUrl, isMobile }) {
     let width = scaleFactor;
     let height = scaleFactor;
 
-    if (texture) {
-        if (aspect > 1) {
-            width = Math.min(isMobile ? 3.5 : 7, scaleFactor * aspect);
-            height = width / aspect;
-        } else {
-            height = Math.min(isMobile ? 5 : 7, scaleFactor / aspect);
-            width = height * aspect;
-        }
+    if (aspect > 1) {
+        width = Math.min(isMobile ? 3.5 : 7, scaleFactor * aspect);
+        height = width / aspect;
+    } else {
+        height = Math.min(isMobile ? 5 : 7, scaleFactor / aspect);
+        width = height * aspect;
     }
 
     return (
@@ -135,9 +128,9 @@ export default function DetailView() {
 
                     {/* Scrollable Content */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-8 py-2 md:py-4">
-                        <motion.div 
-                            initial={{ opacity: 0, y: 10 }} 
-                            animate={{ opacity: 1, y: 0 }} 
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.08, duration: 0.16 }}
                             className="space-y-6"
                         >
@@ -157,9 +150,9 @@ export default function DetailView() {
 
                             {/* Artist Section - Only if Known */}
                             {isKnownArtist ? (
-                                <motion.div 
-                                    initial={{ opacity: 0 }} 
-                                    animate={{ opacity: 1 }} 
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
                                     transition={{ delay: 0.1, duration: 0.14 }}
                                     className="pt-4 border-t border-white/10"
                                 >
@@ -186,9 +179,9 @@ export default function DetailView() {
                             ) : null}
 
                             {/* Metadata Grid */}
-                            <motion.div 
-                                initial={{ opacity: 0 }} 
-                                animate={{ opacity: 1 }} 
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
                                 transition={{ delay: 0.12, duration: 0.13 }}
                                 className="grid grid-cols-2 gap-4 py-4 border-y border-white/10"
                             >
@@ -218,9 +211,9 @@ export default function DetailView() {
 
                             {/* Description */}
                             {selectedArtwork.description && (
-                                <motion.div 
-                                    initial={{ opacity: 0 }} 
-                                    animate={{ opacity: 1 }} 
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
                                     transition={{ delay: 0.14, duration: 0.13 }}
                                 >
                                     <p className="text-[10px] text-white/40 uppercase tracking-widest mb-3">Description</p>
@@ -233,9 +226,9 @@ export default function DetailView() {
                     </div>
 
                     {/* Action Button */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 10 }} 
-                        animate={{ opacity: 1, y: 0 }} 
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ delay: 0.16, duration: 0.13 }}
                         className="p-6 md:p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0"
