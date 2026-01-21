@@ -97,10 +97,10 @@ export default function DetailView() {
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: [0.25, 0.4, 0.25, 1] }}
                 className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-charcoal-ink overflow-hidden"
             >
                 {/* Left Side - Artwork Image */}
@@ -120,10 +120,10 @@ export default function DetailView() {
 
                 {/* Right Side - Info Panel */}
                 <motion.div
-                    initial={{ x: '100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: '100%' }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    initial={{ x: '100%', opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: '100%', opacity: 0 }}
+                    transition={{ duration: 0.18, ease: [0.25, 0.4, 0.25, 1] }}
                     className="w-full h-[55vh] md:h-full md:w-2/5 lg:w-1/3 bg-gradient-to-b from-charcoal-ink via-charcoal-ink to-black/80 border-l border-white/5 flex flex-col relative shadow-2xl overflow-hidden"
                 >
                     {/* Close Button - Desktop */}
@@ -138,7 +138,7 @@ export default function DetailView() {
                         <motion.div 
                             initial={{ opacity: 0, y: 10 }} 
                             animate={{ opacity: 1, y: 0 }} 
-                            transition={{ delay: 0.1, duration: 0.15 }}
+                            transition={{ delay: 0.08, duration: 0.16 }}
                             className="space-y-6"
                         >
                             {/* Badge */}
@@ -160,7 +160,7 @@ export default function DetailView() {
                                 <motion.div 
                                     initial={{ opacity: 0 }} 
                                     animate={{ opacity: 1 }} 
-                                    transition={{ delay: 0.12, duration: 0.15 }}
+                                    transition={{ delay: 0.1, duration: 0.14 }}
                                     className="pt-4 border-t border-white/10"
                                 >
                                     <div className="flex items-start gap-4">
@@ -189,7 +189,7 @@ export default function DetailView() {
                             <motion.div 
                                 initial={{ opacity: 0 }} 
                                 animate={{ opacity: 1 }} 
-                                transition={{ delay: 0.14, duration: 0.15 }}
+                                transition={{ delay: 0.12, duration: 0.13 }}
                                 className="grid grid-cols-2 gap-4 py-4 border-y border-white/10"
                             >
                                 {selectedArtwork.year && (
@@ -216,16 +216,16 @@ export default function DetailView() {
                                 )}
                             </motion.div>
 
-                            {/* Description */}
+                            {/* Description (plain text only) */}
                             {selectedArtwork.description && (
                                 <motion.div 
                                     initial={{ opacity: 0 }} 
                                     animate={{ opacity: 1 }} 
-                                    transition={{ delay: 0.16, duration: 0.15 }}
+                                    transition={{ delay: 0.14, duration: 0.13 }}
                                 >
                                     <p className="text-[10px] text-white/40 uppercase tracking-widest mb-3">Description</p>
-                                    <p className="text-soft-clay/90 leading-relaxed font-light text-sm line-clamp-4">
-                                        {selectedArtwork.description}
+                                    <p className="text-soft-clay/90 leading-relaxed font-light text-sm line-clamp-6 whitespace-pre-line">
+                                        {String(selectedArtwork.description).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
                                     </p>
                                 </motion.div>
                             )}
@@ -237,7 +237,7 @@ export default function DetailView() {
                         initial={{ opacity: 0, y: 10 }} 
                         animate={{ opacity: 1, y: 0 }} 
                         exit={{ opacity: 0, y: 10 }}
-                        transition={{ delay: 0.18, duration: 0.15 }}
+                        transition={{ delay: 0.16, duration: 0.13 }}
                         className="p-6 md:p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0"
                     >
                         <button

@@ -27,6 +27,34 @@
 - **Icons**: Lucide React
 - **Routing**: React Router v6
 
+## ✅ Scope & Requirements
+
+### MUST-HAVE
+1. Home page with featured artworks and CTA to Explore
+2. Explore grid with artworks from Art Institute of Chicago and Europeana
+3. Filters: keyword, artist, and era (live-updating)
+4. Collections: Add/remove artworks with persistence via LocalStorage
+5. Client-side routing with React Router v6
+6. State via Context API and custom hooks
+
+### NICE-TO-HAVE
+- Hover effects and tasteful micro-animations
+- Keyboard navigation in the Explore grid
+- Skeleton loaders during fetches
+- Clear error/no-result messages
+
+## 🔐 Environment Setup
+
+Create a `.env` file in the project root based on `.env.example`:
+
+```
+VITE_EUROPEANA_API_KEY=your_key_here
+```
+
+Notes:
+- A demo key fallback (`api2demo`) is used if the key is not provided for Europeana.
+- Art Institute of Chicago API does not require a key.
+
 ## 📂 Project Structure
 
 ```
@@ -74,6 +102,47 @@ src/
     ```bash
     npm run build
     ```
+
+5. **Run tests**
+    ```bash
+    npm test
+    ```
+
+## 🧪 Testing
+
+- Unit tests live under `src/hooks` and `src/components` (Vitest + Testing Library)
+- To run in watch mode: `npm test`
+
+## 🖼️ Screenshots / Demo
+
+- Add screenshots or a short GIF/video of the Explore page, filters, and collections.
+- If deployed, include the live link here.
+
+## 🌐 APIs & Data Notes
+
+- Art Institute of Chicago and Europeana results are normalized to a common shape.
+- Network resilience:
+  - AbortController to cancel stale requests on query changes.
+  - Exponential backoff retry for transient failures.
+- Rate limits: The app debounces user input and performs incremental pagination.
+
+## ♿ Accessibility & UI
+
+- Semantic roles and labels on interactive elements.
+- Focusable cards and buttons; keyboard navigation planned for Explore grid.
+- High-contrast dark theme with readable typography.
+
+## ⚙️ Performance
+
+- Virtualized grid using `react-window` renders only visible artworks.
+- Lazy-loaded, responsive images with `sizes/srcSet` for IIIF sources.
+- Sliding window keeps only the latest ~200 items in memory to bound render cost.
+- Debounced search input and memoized filters/facets.
+
+## ⚠️ Known Limitations
+
+- Europeana preview images vary in size/quality depending on source records.
+- Some artworks lack complete metadata (artist/year/medium), which affects filters.
 
 ## 🎨 Design Philosophy
 

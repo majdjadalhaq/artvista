@@ -5,6 +5,7 @@ const UIContext = createContext();
 export function UIProvider({ children }) {
     const [selectedArtwork, setSelectedArtwork] = useState(null);
     const [scrollPosition, setScrollPosition] = useState(0);
+    const [performanceMode, setPerformanceMode] = useState(false);
 
     const openArtwork = (artwork) => {
         // Save current scroll position before opening detail view
@@ -20,8 +21,10 @@ export function UIProvider({ children }) {
         }, 150);
     };
 
+    const togglePerformanceMode = () => setPerformanceMode((v) => !v);
+
     return (
-        <UIContext.Provider value={{ selectedArtwork, openArtwork, closeArtwork, scrollPosition }}>
+        <UIContext.Provider value={{ selectedArtwork, openArtwork, closeArtwork, scrollPosition, performanceMode, togglePerformanceMode }}>
             {children}
         </UIContext.Provider>
     );

@@ -24,45 +24,51 @@ const PageLoader = () => (
   </div>
 );
 
+function AppRoutes({ location }) {
+  return (
+    <Routes location={location} key={location.pathname}>
+      <Route element={<Layout />}>
+        <Route path="/" element={
+          <Suspense fallback={<PageLoader />}>
+            <Home />
+          </Suspense>
+        } />
+        <Route path="/explore" element={
+          <Suspense fallback={<PageLoader />}>
+            <Explore />
+          </Suspense>
+        } />
+        <Route path="/collection" element={
+          <Suspense fallback={<PageLoader />}>
+            <Collection />
+          </Suspense>
+        } />
+        <Route path="/about" element={
+          <Suspense fallback={<PageLoader />}>
+            <About />
+          </Suspense>
+        } />
+        <Route path="/artwork/:id" element={
+          <Suspense fallback={<PageLoader />}>
+            <ArtworkDetail />
+          </Suspense>
+        } />
+        <Route path="*" element={
+          <Suspense fallback={<PageLoader />}>
+            <NotFoundPage />
+          </Suspense>
+        } />
+      </Route>
+    </Routes>
+  );
+}
+
 function AppContent() {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route element={<Layout />}>
-          <Route path="/" element={
-            <Suspense fallback={<PageLoader />}>
-              <Home />
-            </Suspense>
-          } />
-          <Route path="/explore" element={
-            <Suspense fallback={<PageLoader />}>
-              <Explore />
-            </Suspense>
-          } />
-          <Route path="/collection" element={
-            <Suspense fallback={<PageLoader />}>
-              <Collection />
-            </Suspense>
-          } />
-          <Route path="/about" element={
-            <Suspense fallback={<PageLoader />}>
-              <About />
-            </Suspense>
-          } />
-          <Route path="/artwork/:id" element={
-            <Suspense fallback={<PageLoader />}>
-              <ArtworkDetail />
-            </Suspense>
-          } />
-          <Route path="*" element={
-            <Suspense fallback={<PageLoader />}>
-              <NotFoundPage />
-            </Suspense>
-          } />
-        </Route>
-      </Routes>
+      <AppRoutes location={location} key={location.pathname} />
     </AnimatePresence>
   );
 }

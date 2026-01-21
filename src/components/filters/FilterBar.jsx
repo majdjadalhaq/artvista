@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Filter, ChevronDown } from 'lucide-react';
 import { ERA_CONFIG, extractArtistName } from '../../utils/filterUtils';
+import { useUI } from '../../context/UIContext';
 
 /**
  * FilterBar Component
@@ -16,6 +17,7 @@ export default function FilterBar({
     facets
 }) {
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const { performanceMode, togglePerformanceMode } = useUI();
 
     // Dynamic Filter Options
     const filterOptions = {
@@ -69,7 +71,15 @@ export default function FilterBar({
             </div>
 
             {/* Filter Dropdowns Row */}
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex flex-wrap justify-end items-center gap-2">
+                {/* Performance Mode Toggle */}
+                <button
+                    onClick={togglePerformanceMode}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-all ${performanceMode ? 'bg-white/10 border-white/30 text-white' : 'bg-charcoal-ink/80 border-white/20 text-white hover:border-turquoise-core/50'}`}
+                    title="Toggle Performance Mode"
+                >
+                    {performanceMode ? 'Performance: On' : 'Performance: Off'}
+                </button>
                 {Object.keys(filterOptions).map((key) => {
                     const isActive = !!filters[key];
                     return (

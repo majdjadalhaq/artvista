@@ -5,7 +5,6 @@ import MosaicGrid from '../components/gallery/MosaicGrid';
 import LoadingFallback from '../components/gallery/LoadingFallback';
 import DetailView from '../components/artwork/DetailView';
 import { useArtworks } from '../hooks/useArtworks';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { useUI } from '../context/UIContext';
 
 export default function Explore() {
@@ -22,9 +21,6 @@ export default function Explore() {
         onClearAll,
         facets
     } = useArtworks();
-
-    // Attach Infinite Scroll to the 'loadMore' function
-    const lastElementRef = useInfiniteScroll(loading, hasMore, loadMore);
 
     return (
         <div className="min-h-screen bg-charcoal-ink text-dust-sand relative">
@@ -61,13 +57,16 @@ export default function Explore() {
                         <MosaicGrid
                             artworks={artworks}
                             hasMore={hasMore}
-                            lastElementRef={lastElementRef}
+                            onLoadMore={loadMore}
+                            loading={loading}
                         />
 
-                        {/* Bottom Loader Indicator */}
+                        {/* Bottom Ribbon Loader */}
                         {loading && (
-                            <div className="w-full flex justify-center py-12">
-                                <div className="w-8 h-8 border-2 border-turquoise-core border-t-transparent rounded-full animate-spin" />
+                            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40">
+                                <div className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-xs md:text-sm shadow-lg backdrop-blur-md">
+                                    Loading more artworks…
+                                </div>
                             </div>
                         )}
                     </>

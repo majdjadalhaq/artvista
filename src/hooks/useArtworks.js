@@ -91,13 +91,18 @@ export function useArtworks() {
             if (validItems.length > 0) {
                 setAllArtworks(prev => {
                     const combined = [...prev, ...validItems];
-                    // Deduplicate by ID
+                    // Deduplicate by ID while preserving order
                     const seen = new Set();
-                    return combined.filter(item => {
-                        if (seen.has(item.id)) return false;
-                        seen.add(item.id);
-                        return true;
-                    });
+                    const deduped = [];
+                    for (const item of combined) {
+                        if (!seen.has(item.id)) {
+                            seen.add(item.id);
+                            deduped.push(item);
+                        }
+                    }
+                    // Sliding window: keep only last N items to bound memory/render cost
+                    const WINDOW_SIZE = 200;
+                    return deduped.length > WINDOW_SIZE ? deduped.slice(-WINDOW_SIZE) : deduped;
                 });
             }
 
