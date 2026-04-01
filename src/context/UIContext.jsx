@@ -1,15 +1,15 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
 
 const UIContext = createContext();
 
 export function UIProvider({ children }) {
     const [selectedArtwork, setSelectedArtwork] = useState(null);
-    const [scrollPosition, setScrollPosition] = useState(0);
-
+    const [spotlightActive, setSpotlightActive] = useState(false);
+    // useRef avoids stale-closure issues — the current value is always the latest.
+    const scrollPositionRef = useRef(0);
 
     const openArtwork = (artwork) => {
-        // Save current scroll position before opening detail view
-        setScrollPosition(window.scrollY);
+        scrollPositionRef.current = window.scrollY;
         setSelectedArtwork(artwork);
     };
 
@@ -17,12 +17,14 @@ export function UIProvider({ children }) {
         setSelectedArtwork(null);
         // Restore scroll position after a brief delay to allow animation
         setTimeout(() => {
-            window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+            window.scrollTo({ top: scrollPositionRef.current, behavior: 'instant' });
         }, 150);
     };
 
+    const toggleSpotlight = () => setSpotlightActive(v => !v);
+
     return (
-        <UIContext.Provider value={{ selectedArtwork, openArtwork, closeArtwork, scrollPosition }}>
+        <UIContext.Provider value={{ selectedArtwork, openArtwork, closeArtwork, spotlightActive, toggleSpotlight }}>
             {children}
         </UIContext.Provider>
     );
