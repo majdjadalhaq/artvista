@@ -1,14 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCollection } from '../../context/CollectionContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../common/Logo';
 import { Menu, X } from 'lucide-react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export default function Header() {
     const location = useLocation();
     const { collection } = useCollection();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const headerRef = useRef(null);
+
+    // Compact the header after 80px of scroll, expand it when back at top.
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            ScrollTrigger.create({
+                start: 'top -80',
+                onEnter: () =>
+                    gsap.to(headerRef.current, { paddingTop: '0.75rem', paddingBottom: '0.75rem', duration: 0.35, ease: 'power2.out' }),
+                onLeaveBack: () =>
+                    gsap.to(headerRef.current, { paddingTop: '1.5rem', paddingBottom: '1.5rem', duration: 0.35, ease: 'power2.out' }),
+            });
+        });
+        return () => ctx.revert();
+    }, []);
 
     // Close menu when route changes
     useEffect(() => {
@@ -32,7 +49,7 @@ export default function Header() {
     ];
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-6 md:py-8 mix-blend-difference text-white pointer-events-none">
+        <nav ref={headerRef} className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-6 md:py-8 mix-blend-difference text-white pointer-events-none">
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 text-xl font-serif font-bold tracking-widest pointer-events-auto hover:opacity-70 transition-opacity z-[110]">

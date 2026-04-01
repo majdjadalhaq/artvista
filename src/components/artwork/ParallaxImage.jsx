@@ -2,8 +2,7 @@ import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useUI } from '../../context/UIContext';
-
-gsap.registerPlugin(ScrollTrigger);
+// ScrollTrigger is registered once in main.jsx.
 
 export default function ParallaxImage({ src, alt, speed = 1, className, artworkId, title, artist, description, year, medium }) {
     const containerRef = useRef(null);

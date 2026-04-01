@@ -3,8 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
 import ArtworkCard from './ArtworkCard';
-
-gsap.registerPlugin(ScrollTrigger);
+// ScrollTrigger is registered once in main.jsx.
 
 export default function InteractiveGrid({ artworks }) {
     const containerRef = useRef(null);
