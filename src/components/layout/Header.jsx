@@ -4,6 +4,7 @@ import { useCollection } from '../../context/CollectionContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../common/Logo';
 import { Menu, X } from 'lucide-react';
+import { V1_URL } from '../../config';
 
 export default function Header() {
     const location = useLocation();
@@ -59,6 +60,17 @@ export default function Header() {
                         )}
                     </li>
                 ))}
+                <li>
+                    <a
+                        href={V1_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View original V1"
+                        className="text-[9px] uppercase tracking-[0.2em] font-sans border border-current opacity-30 hover:opacity-80 px-2 py-0.5 rounded transition-opacity"
+                    >
+                        V1
+                    </a>
+                </li>
             </ul>
 
             {/* Mobile Menu Toggle */}
@@ -96,6 +108,20 @@ export default function Header() {
                                     </Link>
                                 </motion.li>
                             ))}
+                            <motion.li
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 + (links.length * 0.1) }}
+                            >
+                                <a
+                                    href={V1_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-sans uppercase tracking-widest opacity-40 hover:opacity-80 border border-white/30 px-4 py-1.5 rounded transition-opacity"
+                                >
+                                    V1
+                                </a>
+                            </motion.li>
                         </ul>
                     </motion.div>
                 )}
