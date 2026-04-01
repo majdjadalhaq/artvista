@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import FilterBar from '../components/filters/FilterBar';
 import MosaicGrid from '../components/gallery/MosaicGrid';
+import FeaturedStrip from '../components/gallery/FeaturedStrip';
 import LoadingFallback from '../components/gallery/LoadingFallback';
 import EmptyResult from '../components/ui/EmptyResult';
 import DetailView from '../components/artwork/DetailView';
@@ -53,6 +53,17 @@ export default function Explore() {
                     <LoadingFallback />
                 ) : (
                     <>
+                        {/* Cinematic horizontal featured strip — shows first 7 artworks */}
+                        {artworks.length >= 2 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.8, delay: 0.2 }}
+                                className="pt-20"
+                            >
+                                <FeaturedStrip artworks={artworks} />
+                            </motion.div>
+                        )}
                         <MosaicGrid
                             artworks={artworks}
                             hasMore={hasMore}
