@@ -74,8 +74,8 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                 onClick={(e) => onClick && (e.preventDefault(), onClick(e))}
                 className="block w-full h-full relative"
             >
-                {/* Image Container - No fixed aspect ratio, adapts to image */}
-                <div className="relative w-full overflow-hidden bg-gray-900">
+                {/* Image Container — layoutId ties this to DetailView for the FLIP transition */}
+                <motion.div layoutId={`artwork-flip-${artwork.id}`} className="relative w-full overflow-hidden bg-gray-900">
 
                     {/* Placeholder / Loading Skeleton */}
                     {!imageLoaded && !imageError && (
@@ -141,7 +141,7 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                             </span>
                         </div>
                     </motion.div>
-                </div>
+                </motion.div>
             </Link>
         </motion.div>
     );

@@ -90,14 +90,19 @@ export default function DetailView() {
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.18, ease: [0.25, 0.4, 0.25, 1] }}
+                key={selectedArtwork.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
                 className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-charcoal-ink overflow-hidden"
             >
-                {/* Left Side - Artwork Image */}
-                <div className="relative w-full h-[45vh] md:h-full md:w-3/5 lg:w-2/3 bg-black overflow-hidden">
+                {/* Left Side — layoutId matches ArtworkCard so Framer Motion FLIP-animates the image */}
+                <motion.div
+                    layoutId={`artwork-flip-${selectedArtwork.id}`}
+                    className="relative w-full h-[45vh] md:h-full md:w-3/5 lg:w-2/3 bg-black overflow-hidden"
+                    transition={{ duration: 0.45, ease: [0.32, 0, 0.67, 0] }}
+                >
                     <div className="absolute inset-0 opacity-30 blur-3xl scale-110" style={{ backgroundImage: `url(${imageSrc})`, backgroundSize: 'cover' }} />
                     <div className="absolute inset-0 z-10">
                         <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
@@ -109,7 +114,7 @@ export default function DetailView() {
                     <button onClick={closeArtwork} className="md:hidden absolute top-4 right-4 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-black/70 transition-all">
                         <X size={20} />
                     </button>
-                </div>
+                </motion.div>
 
                 {/* Right Side - Info Panel */}
                 <motion.div
