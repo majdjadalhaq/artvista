@@ -93,6 +93,9 @@ export function useArtworks() {
                     const WINDOW_SIZE = 200;
                     return deduped.length > WINDOW_SIZE ? deduped.slice(-WINDOW_SIZE) : deduped;
                 });
+            } else {
+                // No new items means we've reached the end of available results.
+                setHasMore(false);
             }
 
             // We prepare for the next page of results.
@@ -206,7 +209,7 @@ export function useArtworks() {
         artworks: filteredArtworks,
         loading,
         error,
-        hasMore: true, // We always allow infinite scrolling.
+        hasMore,
         loadMore: fetchNextBatch,
         searchQuery,
         setSearchQuery,

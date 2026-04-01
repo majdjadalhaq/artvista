@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, forwardRef } from 'react';
+import { useState, useCallback, useEffect, useRef, memo, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Maximize2 } from 'lucide-react';
 import { useCollection } from '../../context/CollectionContext';
@@ -9,6 +9,14 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
     const saved = isSaved(artwork.id);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const timeoutRef = useRef(null);
+
+    // Fall back to the placeholder after 8 s — onError won't fire for network hangs.
+    useEffect(() => {
+        if (imageLoaded || imageError) return;
+        timeoutRef.current = setTimeout(() => setImageError(true), 8000);
+        return () => clearTimeout(timeoutRef.current);
+    }, [imageLoaded, imageError]);
 
     // Helper to get best image source, returns null if none
     const getArtworkImage = useCallback(() => {
@@ -90,8 +98,8 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
                             src={getArtworkImage()}
                             alt={typeof artwork.title === 'string' ? artwork.title : 'Artwork'}
                             className={`w-full h-auto object-cover block align-bottom transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                            onLoad={() => setImageLoaded(true)}
-                            onError={() => setImageError(true)}
+                            onLoad={() => { clearTimeout(timeoutRef.current); setImageLoaded(true); }}
+                            onError={() => { clearTimeout(timeoutRef.current); setImageError(true); }}
                             loading="lazy"
                         />
                     ) : (

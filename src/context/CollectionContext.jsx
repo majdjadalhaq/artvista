@@ -1,18 +1,34 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useToast } from './ToastContext';
 
 const CollectionContext = createContext(null);
 
 export function CollectionProvider({ children }) {
+    const { addToast } = useToast();
+
     const [collection, setCollection] = useState(() => {
         if (typeof window === 'undefined') return [];
         try {
             const saved = localStorage.getItem('artvista_collection');
             return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            console.error('Failed to parse collection from localStorage', e);
+        } catch {
+            // Toast shown after mount in the useEffect below.
             return [];
         }
     });
+
+    // Notify the user if their saved collection was corrupted.
+    useEffect(() => {
+        const raw = localStorage.getItem('artvista_collection');
+        if (!raw) return;
+        try {
+            JSON.parse(raw);
+        } catch {
+            localStorage.removeItem('artvista_collection');
+            addToast('Your saved collection could not be loaded and has been reset.', 'error');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('artvista_collection', JSON.stringify(collection));
