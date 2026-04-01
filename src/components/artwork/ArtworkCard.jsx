@@ -2,13 +2,19 @@ import { useState, useCallback, memo, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Maximize2 } from 'lucide-react';
 import { useCollection } from '../../context/CollectionContext';
+import { useUI } from '../../context/UIContext';
+import { useAmbientColor } from '../../hooks/useAmbientColor';
 import { Link } from 'react-router-dom';
 
 const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, className = '', onClick }, ref) {
     const { isSaved, addToCollection, removeFromCollection } = useCollection();
+    const { setAmbientColor } = useUI();
     const saved = isSaved(artwork.id);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
+
+    const imageUrl = artwork.image_large || artwork.imageUrl || artwork.image || artwork.image_small || artwork.image_url || null;
+    const { onHoverStart, onHoverEnd } = useAmbientColor(imageUrl, setAmbientColor);
 
     // Helper to get best image source, returns null if none
     const getArtworkImage = useCallback(() => {
@@ -67,6 +73,8 @@ const ArtworkCard = memo(forwardRef(function ArtworkCard({ artwork, index, class
             initial="hidden"
             animate="idle"
             whileHover="hover"
+            onHoverStart={onHoverStart}
+            onHoverEnd={onHoverEnd}
             className={`group relative w-full mb-6 break-inside-avoid rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-shadow duration-500 bg-charcoal-surface ${className}`}
         >
             <Link

@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 import { motion } from 'framer-motion';
 import FilterBar from '../components/filters/FilterBar';
 import MosaicGrid from '../components/gallery/MosaicGrid';
@@ -24,8 +25,34 @@ export default function Explore() {
         facets
     } = useArtworks();
 
+    const { ambientColor } = useUI();
+    const bgRef = useRef(null);
+
+    // Smoothly tween the ambient background tint whenever the hovered artwork changes.
+    useEffect(() => {
+        if (!bgRef.current) return;
+        if (ambientColor) {
+            gsap.to(bgRef.current, {
+                '--ambient-r': parseInt(ambientColor.match(/\d+/g)[0]),
+                '--ambient-g': parseInt(ambientColor.match(/\d+/g)[1]),
+                '--ambient-b': parseInt(ambientColor.match(/\d+/g)[2]),
+                '--ambient-opacity': 0.12,
+                duration: 1.5, ease: 'power1.out',
+            });
+        } else {
+            gsap.to(bgRef.current, { '--ambient-opacity': 0, duration: 1, ease: 'power1.out' });
+        }
+    }, [ambientColor]);
+
     return (
-        <div className="min-h-screen bg-charcoal-ink text-dust-sand relative overflow-x-hidden">
+        <div
+            ref={bgRef}
+            style={{
+                '--ambient-r': 30, '--ambient-g': 30, '--ambient-b': 30, '--ambient-opacity': 0,
+                background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(var(--ambient-r),var(--ambient-g),var(--ambient-b),var(--ambient-opacity)) 0%, #1E1E1E 65%)',
+            }}
+            className="min-h-screen text-dust-sand relative overflow-x-hidden transition-none"
+        >
             <FilterBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
